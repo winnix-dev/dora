@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dora_rounded_background"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    >
+
+    <ProgressBar
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loading..."
+        android:layout_marginTop="8dp"
+        android:textSize="12sp"
+        android:textColor="#001C4D"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This action may show ad"
+        android:textSize="12sp"
+        android:textColor="#001C4D"
+        />
+
+</LinearLayout>

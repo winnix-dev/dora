@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/clContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dora_bg_radius_8dp_grey_stroke"
+    tools:ignore="MissingDefaultResource">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="360:170"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <FrameLayout
+            android:id="@+id/ad_media2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintDimensionRatio="170:120"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.47" />
+
+        <FrameLayout
+            android:id="@+id/ad_media"
+            android:layout_width="170dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            app:layout_constraintStart_toEndOf="@id/ad_media"
+            app:layout_constraintTop_toTopOf="@id/ad_media">
+
+            <ImageView
+                android:id="@+id/ad_app_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.cardview.widget.CardView>
+
+
+        <TextView
+            android:id="@+id/ad_call_to_action"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/dora_bg_circle_purple_gradient"
+            android:fontFamily="@font/sans_medium"
+            android:gravity="center"
+            android:text="explore"
+            android:textAllCaps="true"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="320:30"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ad_media2"
+            app:layout_constraintWidth_percent="0.94" />
+
+        <TextView
+            android:id="@+id/tvAd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/dora_bg_radius_4dp_blue_stroke"
+            android:fontFamily="@font/montserrat_bold"
+            android:gravity="center"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
+            android:text="Ad"
+            android:textColor="#00D1FF"
+            android:textSize="10sp"
+            app:layout_constraintStart_toStartOf="@id/cvIcon"
+            app:layout_constraintTop_toBottomOf="@id/cvIcon" />
+
+        <TextView
+            android:id="@+id/tvSponsored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sponsored"
+            android:textColor="#CCFFFFFF"
+            android:textSize="9sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/ad_call_to_action"
+            app:layout_constraintStart_toStartOf="@id/ad_call_to_action"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/ad_headline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/sans_medium"
+            android:maxLines="1"
+            android:text="Advertising Title"
+            android:textColor="#1D2531"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="@id/tvAd"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvAd"
+            app:layout_constraintTop_toTopOf="@id/tvAd" />
+
+        <TextView
+            android:id="@+id/ad_body"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/sans_regular"
+            android:maxLines="2"
+            android:text="Advertising is a marketing communication that employs Advertising is a marketin..."
+            android:textColor="#3A4454"
+            android:textSize="9sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tvAd"
+            app:layout_constraintTop_toBottomOf="@id/tvAd" />
+
+        <LinearLayout
+            android:id="@+id/ad_choices_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
