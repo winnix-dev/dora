@@ -1,7 +1,9 @@
 # DORA SDK: Thư viện load Ad của Winnix
 
 ## Installation
-
+```gradle
+implementation 'com.github.winnix-dev:Dora:1.0.0'
+```
 ### Requirements
 * **minSdk:** 22
 * **compileSdk:** 36
