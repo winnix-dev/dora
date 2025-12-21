@@ -7,21 +7,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.nativead.NativeAd
 import com.winnix.adsdk.databinding.ActivityMainBinding
 import com.winnix.dora.model.AdConfig
 import com.winnix.dora.Dora
-import com.winnix.dora.callback.LoadNativeCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
 import com.winnix.dora.helper.NativeLayout
 import com.winnix.dora.model.AdmobBannerSize
 import com.winnix.dora.model.AdmobType
 import com.winnix.dora.model.AdmobUnit
-import com.winnix.dora.rule.AdmobGuard
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -79,12 +72,6 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val adGuard = AdmobGuard().apply {
-//            addRule(
-//                PreConditionRule()
-//            )
-        }
-
         Dora.initialize(
             this,
             adConfig = AdConfig(
@@ -100,8 +87,16 @@ class MainActivity : AppCompatActivity() {
             intervalTime= 3000L,
         )
 
-        Dora.loadInterstitial(
-            inter
+//        Dora.loadInterstitialLegacy(
+//            inter
+//        )
+
+        Dora.setUpInterstitial(
+            adsList = listOf(
+                inter,
+                inter,
+                inter,
+            )
         )
 
         Dora.loadNative()
@@ -110,10 +105,8 @@ class MainActivity : AppCompatActivity() {
             btnInters.setOnClickListener {
                 Dora.showInterstitial(
                     activity = this@MainActivity,
-                    adUnit = inter,
-                    reloadAdUnit = null,
                     timeout = null,
-                    callBack = object : ShowInterstitialCallback {
+                    callback = object : ShowInterstitialCallback {
                         override fun onDismiss() {
                             Log.d(TAG, "On Inters Dismiss")
                         }

@@ -2,11 +2,26 @@
 
 ## Installation
 ```gradle
+// Nhớ đổi sang bản mới nhất ở phần release
 implementation 'com.github.winnix-dev:Dora:1.0.0'
 ```
 ### Requirements
+Lưu ý, cần phải update các SDK đã cũ thì mới dùng được
 * **minSdk:** 22
 * **compileSdk:** 36
+```kotlin
+id("com.android.application") version "8.13.1" apply false
+id("com.android.library") version "8.13.1" apply false
+id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+id("com.google.devtools.ksp") version "2.1.0-1.0.29" apply false
+id ("com.google.dagger.hilt.android") version "2.57.1" apply false
+```
+Thêm App ID vào Manifest
+```xml
+<meta-data  
+    android:name="com.google.android.gms.ads.APPLICATION_ID"  
+    android:value="//ID App"/>
+```
 
 ## Quick Start
 ### 1. Initialize SDK
@@ -85,6 +100,8 @@ Dora.showInterstitial(
     }
 )
 ```
+#### Với điều kiện check màn trước màn sau
+//TODO: Theem sau
 ### 4. Native Ad
 **Thêm 1 FrameLayout vào View**
 ```xml

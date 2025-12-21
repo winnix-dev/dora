@@ -1,133 +1,97 @@
 package com.winnix.dora.helper
 
-import android.app.Activity
 import android.content.Context
-import com.google.android.gms.ads.AdError
+import android.util.Log
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.winnix.dora.callback.LoadInterstitialCallback
-import com.winnix.dora.callback.ShowInterstitialCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
-class InterstitialManager {
-    private val channel = Channel<Boolean>(Channel.CONFLATED)
+internal object InterstitialManager {
+    private val _adState = MutableStateFlow<InterstitialAd?>(null)
+    val adState = _adState.asStateFlow()
+
+    private var idList = listOf<String>()
+    private var currentIndex = 0
+
+    private var retryTime = 4000L
+
     private var isLoading = false
-    private var mInterstitialAd: InterstitialAd? = null
+    private var isWaiting = false
 
-    fun loadInterstitial(
-        context: Context,
-        id: String,
-        callback: LoadInterstitialCallback? = null
+    var callback: LoadInterstitialCallback? = null
+
+    fun setUp(
+        listAd: List<String>,
+        callback: LoadInterstitialCallback?,
+        context: Context
     ) {
-        val appContext = context.applicationContext
+        idList = listAd
+        this.callback = callback
 
-        if (mInterstitialAd != null || isLoading) {
+        loadAd(context)
+    }
+
+    fun loadAd(
+        context: Context,
+    ) {
+        if (isLoading || _adState.value != null || idList.isEmpty() || isWaiting) {
             return
         }
 
-        isLoading = true
-        channel.tryReceive()
+        callback?.onBeginLoad()
 
         val adRequest = AdRequest.Builder().build()
 
+        val id = idList[currentIndex % idList.size]
+
         InterstitialAd.load(
-            appContext,
+            context.applicationContext,
             id,
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(p0: InterstitialAd) {
-                    callback?.onLoaded(p0)
-
-                    mInterstitialAd = p0
                     isLoading = false
-
-                    CoroutineScope(Dispatchers.Default).launch {
-                        channel.send(true)
-                    }
+                    _adState.update { p0 }
+                    callback?.onLoaded()
                 }
 
                 override fun onAdFailedToLoad(p0: LoadAdError) {
+                    isLoading = false
                     callback?.onFailed(p0)
 
-                    mInterstitialAd = null
-                    isLoading = false
+                    Log.e("Dora", "Inters Failed: $id $p0")
 
-                    CoroutineScope(Dispatchers.Default).launch {
-                        channel.send(false)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        isWaiting = true
+                        delay(retryTime)
+                        currentIndex ++
+                        isWaiting = false
+                        loadAd(context)
                     }
                 }
             }
         )
-
     }
 
-    suspend fun showInterstitial(
-        activity: Activity,
-        adId: String,
-        timeoutLong: Long,
-        callback: ShowInterstitialCallback
+    fun onConsumed(
+        context: Context,
     ) {
-        if ( mInterstitialAd == null) {
-            if(!isLoading) {
-                loadInterstitial(
-                    activity,
-                    adId,
-                    object : LoadInterstitialCallback {}
-                )
-            }
-
-            withTimeoutOrNull(timeoutLong) {
-                channel.receive()
-            }
+        _adState.update { null }
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(1000L)
+            loadAd(context)
         }
-
-        if(mInterstitialAd != null) {
-            showInterstitialInternal(
-                activity,
-                callback
-            )
-        } else {
-            callback.onShowFailed()
-        }
-
     }
 
-    private fun showInterstitialInternal(
-        activity: Activity,
-        callback: ShowInterstitialCallback
-    ) {
-        mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdShowedFullScreenContent() {
-                mInterstitialAd = null
-
-                callback.onShow()
-            }
-
-            override fun onAdDismissedFullScreenContent() {
-                callback.onDismiss()
-            }
-
-            override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                mInterstitialAd = null
-
-                callback.onShowFailed()
-            }
-
-            override fun onAdImpression() {
-                callback.onImpression()
-            }
-        }
-
-        mInterstitialAd?.show(activity)
-    }
-
-    fun hasAdAvailable() = mInterstitialAd != null
+    fun isAvailable() : Boolean = _adState.value != null
 
 }
