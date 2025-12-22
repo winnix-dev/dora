@@ -1,6 +1,6 @@
 package com.winnix.dora.rule
 
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdUnit
 
 class AdmobGuard {
     private val adRules = mutableListOf<AdmobRule>()
@@ -14,11 +14,11 @@ class AdmobGuard {
         showAdRules.add(rule)
     }
 
-    fun canLoadAd(ad: AdmobUnit) : Boolean {
+    fun canLoadAd(ad: AdUnit) : Boolean {
         return adRules.all { it.checking(ad) }
     }
 
-    fun canShowAd(ad: AdmobUnit) : Boolean {
+    fun canShowAd(ad: AdUnit) : Boolean {
         return adRules.all { it.checking(ad) } && showAdRules.all { it.checking(ad) }
     }
 }

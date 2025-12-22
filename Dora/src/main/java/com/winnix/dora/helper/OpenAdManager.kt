@@ -14,7 +14,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.OpenAdCallback
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 class OpenAdManager(
     val application: Application,
-    var adId: AdmobUnit,
+    var adId: AdUnit,
     val callback: OpenAdCallback
 ) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
     private var currentActivity: Activity? = null
@@ -50,7 +50,7 @@ class OpenAdManager(
 
         AppOpenAd.load(
             application,
-            Dora.getAdId(adId),
+            Dora.getAdmobId(adId),
             AdRequest.Builder().build(),
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(p0: AppOpenAd) {

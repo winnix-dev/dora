@@ -1,8 +1,8 @@
 package com.winnix.dora.model
 
 
-data class AdmobUnit(
+data class AdUnit(
     val name: String,
     val id: String,
-    val adType: AdmobType,
+    val adType: AdType,
 )

@@ -13,8 +13,8 @@ import com.winnix.dora.Dora
 import com.winnix.dora.callback.ShowInterstitialCallback
 import com.winnix.dora.helper.NativeLayout
 import com.winnix.dora.model.AdmobBannerSize
-import com.winnix.dora.model.AdmobType
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdType
+import com.winnix.dora.model.AdUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,34 +23,34 @@ class MainActivity : AppCompatActivity() {
     }
     private lateinit var binding: ActivityMainBinding
 
-    private val inter = AdmobUnit(
+    private val inter = AdUnit(
         id = "",
         name = "",
-        adType = AdmobType.Inters
+        adType = AdType.Inters
     )
 
-    private val native1 = AdmobUnit(
+    private val native1 = AdUnit(
         id = "",
         name = "",
-        adType = AdmobType.Native
+        adType = AdType.Native
     )
 
-    private val native2 = AdmobUnit(
+    private val native2 = AdUnit(
         id = "",
         name = "",
-        adType = AdmobType.Native
+        adType = AdType.Native
     )
 
-    private val banner = AdmobUnit(
+    private val banner = AdUnit(
         id = "",
         name = "",
-        adType = AdmobType.Banner
+        adType = AdType.Banner
     )
 
-    private val openApp = AdmobUnit(
+    private val openApp = AdUnit(
         id = "",
         name = "",
-        adType = AdmobType.OpenApp
+        adType = AdType.OpenApp
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

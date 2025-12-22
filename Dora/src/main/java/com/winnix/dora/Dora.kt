@@ -34,7 +34,7 @@ import com.winnix.dora.helper.UMPHelper
 import com.winnix.dora.model.AdConfig
 import com.winnix.dora.model.AdState
 import com.winnix.dora.model.AdmobBannerSize
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdUnit
 import com.winnix.dora.ui.LoadingAdDialogFragment
 import com.winnix.dora.ui.NativeFullDialog
 import kotlinx.coroutines.CompletableDeferred
@@ -107,9 +107,9 @@ object Dora {
         initBarrier.await()
     }
 
-    fun getAdId(adUnit: AdmobUnit) : String {
+    fun getAdmobId(adUnit: AdUnit) : String {
         return if (adConfig.isDebug) {
-            adUnit.adType.getDebugId()
+            adUnit.adType.getAdmobDebugId()
         } else {
             adProvider[adUnit.name] ?: adUnit.id
         }
@@ -121,9 +121,17 @@ object Dora {
         this.adProvider = adProvider
     }
 
+    fun getYandexId(adUnit: AdUnit) : String {
+        return if (adConfig.isDebug) {
+            adUnit.adType.getYandexDebugId()
+        } else {
+            adUnit.id
+        }
+    }
+
     // Inters
     fun loadInterstitialLegacy(
-        adUnit: AdmobUnit,
+        adUnit: AdUnit,
     ) {
         if(applicationContext == null) return
 
@@ -132,15 +140,15 @@ object Dora {
 
             interstitialLegacyManager.loadInterstitial(
                 applicationContext?:return@launch,
-                getAdId(adUnit),
+                getAdmobId(adUnit),
             )
         }
     }
 
     fun showInterstitialLegacy(
         activity: AppCompatActivity?,
-        adUnit: AdmobUnit,
-        reloadAdUnit: AdmobUnit?,
+        adUnit: AdUnit,
+        reloadAdUnit: AdUnit?,
         timeout: Long? = null,
         callBack: ShowInterstitialCallback
     ) {
@@ -160,7 +168,7 @@ object Dora {
 
             interstitialLegacyManager.showInterstitial(
                 activity = activity,
-                adId = getAdId(adUnit),
+                adId = getAdmobId(adUnit),
                 timeoutLong = timeout ?: adConfig.intersTimeout,
                 callback = object : ShowInterstitialCallback {
                     override fun onDismiss() {
@@ -248,7 +256,7 @@ object Dora {
     }
 
     fun setUpInterstitial(
-        adsList: List<AdmobUnit>,
+        adsList: List<AdUnit>,
         callback: LoadInterstitialCallback? = null,
     ) {
         InterstitialManager.setUp(
@@ -357,7 +365,7 @@ object Dora {
 
     // Native
     fun setNativeAds(
-        listAds: List<AdmobUnit>,
+        listAds: List<AdUnit>,
         maxAdCache: Int = 2,
         intervalTime: Long = 3000L,
     ) {
@@ -440,7 +448,7 @@ object Dora {
         container: ViewGroup,
         adSize: AdmobBannerSize,
         lifecycleOwner: LifecycleOwner,
-        adUnitId: AdmobUnit
+        adUnitId: AdUnit
     ) {
         lifecycleOwner.lifecycleScope.launch {
             ensureInitialized()
@@ -451,7 +459,7 @@ object Dora {
                     Log.e(TAG, "load Banner fail: $p0")
                 }
             }
-            adView.adUnitId = getAdId(adUnitId)
+            adView.adUnitId = getAdmobId(adUnitId)
 
             var extras : Bundle? = null
 
@@ -507,14 +515,14 @@ object Dora {
     //OpenAd
     fun registerOpenAd(
         application: Application,
-        admobUnit: AdmobUnit
+        adUnit: AdUnit
     ) {
         CoroutineScope(Dispatchers.Main).launch {
             ensureInitialized()
 
             openAdManager = OpenAdManager(
                 application,
-                admobUnit,
+                adUnit,
                 object : OpenAdCallback {
                     override fun canShow(): Boolean {
                         return !adState.isShowingAdFullscreen
@@ -564,4 +572,5 @@ object Dora {
     }
 
     fun getOpenAppState() = openAdManager?.showState
+
 }

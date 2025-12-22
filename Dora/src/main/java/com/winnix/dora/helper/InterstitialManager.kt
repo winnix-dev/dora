@@ -8,7 +8,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadInterstitialCallback
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -21,7 +21,7 @@ internal object InterstitialManager {
     private val _adState = MutableStateFlow<InterstitialAd?>(null)
     val adState = _adState.asStateFlow()
 
-    private var idList = listOf<AdmobUnit>()
+    private var idList = listOf<AdUnit>()
     private var currentIndex = 0
 
     private var retryTime = 4000L
@@ -32,7 +32,7 @@ internal object InterstitialManager {
     var callback: LoadInterstitialCallback? = null
 
     fun setUp(
-        listAd: List<AdmobUnit>,
+        listAd: List<AdUnit>,
         callback: LoadInterstitialCallback?,
         context: Context
     ) {
@@ -59,7 +59,7 @@ internal object InterstitialManager {
 
         InterstitialAd.load(
             context.applicationContext,
-            Dora.getAdId(ad),
+            Dora.getAdmobId(ad),
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(p0: InterstitialAd) {

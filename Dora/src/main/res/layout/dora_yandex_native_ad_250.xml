@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.yandex.mobile.ads.nativeads.NativeAdView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/native_ad_view"
+    android:layout_width="match_parent"
+    android:layout_height="250dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.yandex.mobile.ads.nativeads.MediaView
+                android:id="@+id/ad_media"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/bottom_container"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/ad_feedback"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="#99FFFFFF"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/ad_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:textColor="#FFFFFF"
+                android:textSize="8sp"
+                android:shadowColor="#000000"
+                android:shadowRadius="2"
+                tools:text="0+"
+                app:layout_constraintBottom_toTopOf="@+id/bottom_container"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/ad_sponsored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#99000000"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:text="Ad"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/bottom_container"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:padding="2dp"
+                android:background="#FFFFFF"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageView
+                    android:id="@+id/ad_icon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="#EEE"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:src="@android:drawable/ic_menu_gallery" />
+
+                <TextView
+                    android:id="@+id/ad_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textStyle="bold"
+                    android:textColor="#000"
+                    android:textSize="14sp"
+                    tools:text="App Title Here"
+                    app:layout_constraintEnd_toStartOf="@+id/ad_call_to_action"
+                    app:layout_constraintStart_toEndOf="@+id/ad_icon"
+                    app:layout_constraintTop_toTopOf="@+id/ad_icon" />
+
+                <TextView
+                    android:id="@+id/ad_domain"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#888"
+                    android:textSize="12sp"
+                    tools:text="sponsored.com"
+                    app:layout_constraintEnd_toEndOf="@+id/ad_title"
+                    app:layout_constraintStart_toStartOf="@+id/ad_title"
+                    app:layout_constraintTop_toBottomOf="@+id/ad_title" />
+
+                <Button
+                    android:id="@+id/ad_call_to_action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:backgroundTint="#2196F3"
+                    android:text="Install"
+                    android:textColor="#FFF"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/ad_title" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</com.yandex.mobile.ads.nativeads.NativeAdView>

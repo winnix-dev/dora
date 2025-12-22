@@ -1,6 +1,6 @@
 package com.winnix.dora.rule
 
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdUnit
 
 class NoConsecutiveCondition() : AdmobRule {
     companion object {
@@ -9,7 +9,7 @@ class NoConsecutiveCondition() : AdmobRule {
 
     private val canShow get() = isShowIntersBefore
 
-    override fun checking(ad: AdmobUnit): Boolean {
+    override fun checking(ad: AdUnit): Boolean {
         return canShow
     }
 }

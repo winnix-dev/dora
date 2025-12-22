@@ -65,5 +65,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     api(libs.play.services.ads)
-
+    implementation("com.yandex.android:mobileads:7.18.1")
 }

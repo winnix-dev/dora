@@ -10,7 +10,6 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.winnix.dora.databinding.DoraLayoutAdsNativeFullBinding
 import com.winnix.dora.helper.NativeHelper
 import com.winnix.dora.helper.NativeHelper.registerWithLifecycle
-import com.winnix.dora.model.AdmobType
 
 class NativeFullDialog private constructor(): DialogFragment() {
     companion object {

@@ -15,7 +15,7 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.winnix.dora.Dora
 import com.winnix.dora.helper.NativeHelper.registerWithLifecycle
-import com.winnix.dora.model.AdmobUnit
+import com.winnix.dora.model.AdUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -29,7 +29,7 @@ class NativeManager {
     private var maxAdCache = 2
     private var intervalTime = 3000L
 
-    private var listAds = listOf<AdmobUnit>(
+    private var listAds = listOf<AdUnit>(
 //        AdmobResource.NATIVE_ALL,
 //        AdmobResource.SUCCESS_NATIVE,
     )
@@ -41,7 +41,7 @@ class NativeManager {
     val adState =  _adState.asStateFlow()
 
     fun configAd(
-        listAds: List<AdmobUnit>,
+        listAds: List<AdUnit>,
         maxAdCache: Int = 2,
         intervalTime: Long = 3000L,
     ) {
@@ -68,7 +68,7 @@ class NativeManager {
             val adLoader =
                 AdLoader.Builder(
                     context.applicationContext,
-                    Dora.getAdId(listAds[currentIndex % listAds.size])
+                    Dora.getAdmobId(listAds[currentIndex % listAds.size])
                 )
                     .forNativeAd { ad ->
 
