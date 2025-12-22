@@ -14,10 +14,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.nativead.NativeAd
 import com.winnix.dora.callback.LoadInterstitialCallback
@@ -63,6 +65,8 @@ object Dora {
 
     private var adState = AdState()
 
+    internal var adProvider: Map<String, String> = mapOf()
+
     // General
     fun initialize(
         activity: Activity,
@@ -103,12 +107,18 @@ object Dora {
         initBarrier.await()
     }
 
-    private fun getAdId(adUnit: AdmobUnit) : String {
+    fun getAdId(adUnit: AdmobUnit) : String {
         return if (adConfig.isDebug) {
             adUnit.adType.getDebugId()
         } else {
-            adUnit.id
+            adProvider[adUnit.name] ?: adUnit.id
         }
+    }
+
+    fun setAdProvider(
+        adProvider: Map<String, String>
+    ) {
+        this.adProvider = adProvider
     }
 
     // Inters
@@ -242,9 +252,7 @@ object Dora {
         callback: LoadInterstitialCallback? = null,
     ) {
         InterstitialManager.setUp(
-            listAd = adsList.map {
-                getAdId(it)
-            },
+            listAd = adsList,
             callback = callback,
             context = applicationContext ?: return
         )
@@ -354,9 +362,7 @@ object Dora {
         intervalTime: Long = 3000L,
     ) {
         nativeManager.configAd(
-            listAds.map {
-                getAdId(it)
-            },
+            listAds,
             maxAdCache,
             intervalTime
         )
@@ -440,6 +446,11 @@ object Dora {
             ensureInitialized()
 
             val adView = AdView(activity)
+            adView.adListener = object : AdListener() {
+                override fun onAdFailedToLoad(p0: LoadAdError) {
+                    Log.e(TAG, "load Banner fail: $p0")
+                }
+            }
             adView.adUnitId = getAdId(adUnitId)
 
             var extras : Bundle? = null
@@ -460,12 +471,14 @@ object Dora {
             container.addView(adView)
 
             val adRequest = if(extras == null) {
-                AdRequest.Builder().build()
+                AdRequest.Builder()
+                    .build()
             } else {
                 AdRequest.Builder()
                     .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
                     .build()
             }
+
             adView.loadAd(adRequest)
 
             lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -501,7 +514,7 @@ object Dora {
 
             openAdManager = OpenAdManager(
                 application,
-                getAdId(admobUnit),
+                admobUnit,
                 object : OpenAdCallback {
                     override fun canShow(): Boolean {
                         return !adState.isShowingAdFullscreen

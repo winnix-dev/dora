@@ -2,7 +2,6 @@ package com.winnix.dora.helper
 
 import android.app.Activity
 import android.app.Application
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -13,7 +12,9 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.winnix.dora.Dora
 import com.winnix.dora.callback.OpenAdCallback
+import com.winnix.dora.model.AdmobUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 
 class OpenAdManager(
     val application: Application,
-    var adId: String,
+    var adId: AdmobUnit,
     val callback: OpenAdCallback
 ) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
     private var currentActivity: Activity? = null
@@ -42,11 +43,6 @@ class OpenAdManager(
         loadAd()
     }
 
-    fun changeAdId(id: String) {
-        adId = id
-        loadAd()
-    }
-
     fun loadAd() {
         if(isLoading || openAd != null) return
 
@@ -54,7 +50,7 @@ class OpenAdManager(
 
         AppOpenAd.load(
             application,
-            adId,
+            Dora.getAdId(adId),
             AdRequest.Builder().build(),
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(p0: AppOpenAd) {

@@ -4,47 +4,32 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.VideoOptions
-import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
-import com.google.android.gms.ads.nativead.NativeAdView
-import com.winnix.dora.R
-import com.winnix.dora.callback.FetchNativeCallback
-import com.winnix.dora.callback.LoadNativeCallback
+import com.winnix.dora.Dora
 import com.winnix.dora.helper.NativeHelper.registerWithLifecycle
 import com.winnix.dora.model.AdmobUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Deque
 
 class NativeManager {
     // Config
     private var maxAdCache = 2
     private var intervalTime = 3000L
 
-    private var listAds = listOf<String>(
+    private var listAds = listOf<AdmobUnit>(
 //        AdmobResource.NATIVE_ALL,
 //        AdmobResource.SUCCESS_NATIVE,
     )
@@ -56,7 +41,7 @@ class NativeManager {
     val adState =  _adState.asStateFlow()
 
     fun configAd(
-        listAds: List<String>,
+        listAds: List<AdmobUnit>,
         maxAdCache: Int = 2,
         intervalTime: Long = 3000L,
     ) {
@@ -83,7 +68,7 @@ class NativeManager {
             val adLoader =
                 AdLoader.Builder(
                     context.applicationContext,
-                    listAds[currentIndex % listAds.size]
+                    Dora.getAdId(listAds[currentIndex % listAds.size])
                 )
                     .forNativeAd { ad ->
 

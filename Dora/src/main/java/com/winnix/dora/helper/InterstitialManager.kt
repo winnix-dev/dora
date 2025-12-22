@@ -6,7 +6,9 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadInterstitialCallback
+import com.winnix.dora.model.AdmobUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -19,7 +21,7 @@ internal object InterstitialManager {
     private val _adState = MutableStateFlow<InterstitialAd?>(null)
     val adState = _adState.asStateFlow()
 
-    private var idList = listOf<String>()
+    private var idList = listOf<AdmobUnit>()
     private var currentIndex = 0
 
     private var retryTime = 4000L
@@ -30,7 +32,7 @@ internal object InterstitialManager {
     var callback: LoadInterstitialCallback? = null
 
     fun setUp(
-        listAd: List<String>,
+        listAd: List<AdmobUnit>,
         callback: LoadInterstitialCallback?,
         context: Context
     ) {
@@ -51,11 +53,13 @@ internal object InterstitialManager {
 
         val adRequest = AdRequest.Builder().build()
 
-        val id = idList[currentIndex % idList.size]
+        val ad = idList[currentIndex % idList.size]
+
+//        Log.d("TAGG", "loadAd: ${Dora.getAdId(ad)}")
 
         InterstitialAd.load(
             context.applicationContext,
-            id,
+            Dora.getAdId(ad),
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(p0: InterstitialAd) {
@@ -68,7 +72,7 @@ internal object InterstitialManager {
                     isLoading = false
                     callback?.onFailed(p0)
 
-                    Log.e("Dora", "Inters Failed: $id $p0")
+                    Log.e("Dora", "Inters Failed: $ad $p0")
 
                     CoroutineScope(Dispatchers.Main).launch {
                         isWaiting = true

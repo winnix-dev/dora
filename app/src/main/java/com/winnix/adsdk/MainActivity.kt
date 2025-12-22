@@ -87,10 +87,6 @@ class MainActivity : AppCompatActivity() {
             intervalTime= 3000L,
         )
 
-//        Dora.loadInterstitialLegacy(
-//            inter
-//        )
-
         Dora.setUpInterstitial(
             adsList = listOf(
                 inter,
