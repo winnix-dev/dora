@@ -284,8 +284,6 @@ object Dora {
             if(result != null) {
                 val isHandled = AtomicBoolean(false)
 
-                var nativeAdJob: Job? = null
-
                 result.fullScreenContentCallback = object : FullScreenContentCallback() {
                     override fun onAdShowedFullScreenContent() {
                         InterstitialManager.onConsumed(activity)
@@ -298,18 +296,6 @@ object Dora {
                             isIntersShowing = true
                         )
 
-                        nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                            nativeManager.adState.first { it.isNotEmpty() }
-                            nativeManager.getAndPop(applicationContext ?: return@launch)?.let { nativeAd ->
-                                if(isHandled.compareAndSet(false, true)) {
-                                    val dialog = NativeFullDialog.newInstance(nativeAd) {
-                                        callback.onDismiss()
-                                    }
-                                    dialog.show(activity.supportFragmentManager, NativeFullDialog.TAG)
-                                }
-                            }
-                        }
-
                         callback.onShow()
                     }
 
@@ -319,7 +305,6 @@ object Dora {
                         adState = adState.copy(
                             isIntersShowing = false
                         )
-                        nativeAdJob?.cancel()
 
                         if(isHandled.compareAndSet(false, true)) {
                             callback.onDismiss()
@@ -329,7 +314,6 @@ object Dora {
                     override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                         InterstitialManager.onConsumed(activity)
                         hideLoadingDialog(activity)
-                        nativeAdJob?.cancel()
 
                         callback.onShowFailed()
                         adState = adState.copy(
