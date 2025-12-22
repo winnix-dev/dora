@@ -1,4 +1,4 @@
 jdk:
   - openjdk17
 before_install:
-  - ./gradlew dependencies
+  - ./gradlew :Dora:clean :Dora:assembleRelease :Dora:publishToMavenLocal -x test
