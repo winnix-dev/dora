@@ -345,6 +345,8 @@ object Dora {
         }
     }
 
+    fun getIntersState() = InterstitialManager.adState
+
     // Native
     fun setNativeAds(
         listAds: List<AdmobUnit>,
@@ -358,6 +360,8 @@ object Dora {
             maxAdCache,
             intervalTime
         )
+
+        nativeManager.loadAd(applicationContext?:return)
     }
     fun loadAndShowNative(
         activity: Activity,
@@ -545,4 +549,6 @@ object Dora {
         }
 
     }
+
+    fun getOpenAppState() = openAdManager?.showState
 }

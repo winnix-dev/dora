@@ -17,6 +17,9 @@ import com.winnix.dora.callback.OpenAdCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class OpenAdManager(
@@ -29,6 +32,9 @@ class OpenAdManager(
     private var isLoading = false
     private var loadTime = 0L
     private var isShowingAd = false
+
+    private val _showState = MutableStateFlow(false)
+    val showState = _showState.asStateFlow()
 
     init {
         application.registerActivityLifecycleCallbacks(this)
@@ -70,10 +76,7 @@ class OpenAdManager(
         activity: Activity,
         onComplete: () -> Unit
     ) {
-        Log.d("TAGG", "showAdIfAvailable: ${isAvailable()} $activity")
-
         if(activity.isFinishing || activity.isDestroyed) {
-            Log.d("TAGG", "activity failed: ${activity.isFinishing} ${activity.isDestroyed}")
             onComplete()
             return
         }
@@ -91,8 +94,8 @@ class OpenAdManager(
 
         openAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                Log.d("TAGG", "onAdDismissedFullScreenContent")
                 isShowingAd = false
+                _showState.update { false }
                 openAd = null
                 loadAd()
                 onComplete()
@@ -100,21 +103,21 @@ class OpenAdManager(
             }
 
             override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                Log.d("TAGG", "onAdFailedToShowFullScreenContent $p0")
+                Log.d("Dora", "onAdFailedToShowFullScreenContent $p0")
                 isShowingAd = false
+                _showState.update { false }
                 openAd = null
                 loadAd()
                 callback.onDismiss()
             }
 
             override fun onAdShowedFullScreenContent() {
-                Log.d("TAGG", "onAdShowedFullScreenContent")
+                Log.d("Dora", "onAdShowedFullScreenContent")
                 isShowingAd = true
+                _showState.update { true }
                 callback.onShowAd()
             }
         }
-
-        Log.d("TAGG", "showAdIfAvailable: $openAd")
 
         CoroutineScope(Dispatchers.Main).launch {
             delay(200)

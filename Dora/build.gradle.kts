@@ -44,7 +44,7 @@ android {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "com.github.winnix"
+            groupId = "com.github.winnix-dev"
             artifactId = "dora"
             version = "1.1.3"
 
