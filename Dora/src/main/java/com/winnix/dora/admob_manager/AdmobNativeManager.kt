@@ -1,4 +1,4 @@
-package com.winnix.dora.helper
+package com.winnix.dora.admob_manager
 
 import android.app.Activity
 import android.content.Context
@@ -13,8 +13,9 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.VideoOptions
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
-import com.winnix.dora.Dora
-import com.winnix.dora.helper.NativeHelper.registerWithLifecycle
+import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
+import com.winnix.dora.helper.AdIdProvider
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.AdUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class NativeManager {
+internal object AdmobNativeManager {
     // Config
     private var maxAdCache = 2
     private var intervalTime = 3000L
@@ -68,7 +69,7 @@ class NativeManager {
             val adLoader =
                 AdLoader.Builder(
                     context.applicationContext,
-                    Dora.getAdmobId(listAds[currentIndex % listAds.size])
+                    AdIdProvider.getAdId(listAds[currentIndex % listAds.size], adProvider = AdProvider.AD_MOB)
                 )
                     .forNativeAd { ad ->
 

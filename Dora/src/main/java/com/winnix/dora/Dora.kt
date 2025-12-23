@@ -22,14 +22,19 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.nativead.NativeAd
+import com.winnix.dora.admob_manager.AdmobBannerHelper
+import com.winnix.dora.admob_manager.AdmobOpenAppManager
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.OpenAdCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
-import com.winnix.dora.helper.InterstitialLegacyManager
-import com.winnix.dora.helper.InterstitialManager
-import com.winnix.dora.helper.NativeLayout
-import com.winnix.dora.helper.NativeManager
+import com.winnix.dora.admob_manager.InterstitialLegacyManager
+import com.winnix.dora.admob_manager.AdmobInterstitialManager
+import com.winnix.dora.admob_manager.NativeLayout
+import com.winnix.dora.admob_manager.AdmobNativeManager
+import com.winnix.dora.callback.LoadBannerCallback
 import com.winnix.dora.helper.OpenAdManager
+import com.winnix.dora.helper.AdIdProvider
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.helper.UMPHelper
 import com.winnix.dora.model.AdConfig
 import com.winnix.dora.model.AdState
@@ -37,11 +42,18 @@ import com.winnix.dora.model.AdmobBannerSize
 import com.winnix.dora.model.AdUnit
 import com.winnix.dora.ui.LoadingAdDialogFragment
 import com.winnix.dora.ui.NativeFullDialog
+import com.winnix.dora.yandex_manager.YandexBannerManager
+import com.winnix.dora.yandex_manager.YandexIntersManager
+import com.winnix.dora.yandex_manager.YandexNativeManger
+import com.winnix.dora.yandex_manager.YandexOpenApp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -59,9 +71,7 @@ object Dora {
 
     private var interstitialLegacyManager = InterstitialLegacyManager()
 
-    private var nativeManager = NativeManager()
-
-    private var openAdManager : OpenAdManager? = null
+    private var openAdManager: OpenAdManager? = null
 
     private var adState = AdState()
 
@@ -75,6 +85,9 @@ object Dora {
         Log.d(TAG, "initAd SDK")
 
         this.adConfig = adConfig
+
+        AdIdProvider.isDebug = adConfig.isDebug
+
         applicationContext = activity.applicationContext
 
         if (initBarrier.isCompleted) {
@@ -98,21 +111,15 @@ object Dora {
             }
         }
     }
+
     private fun completeInitAd() {
         Log.d(TAG, "completeInitAd")
         isInitialized = true
         initBarrier.complete(Unit)
     }
+
     private suspend fun ensureInitialized() {
         initBarrier.await()
-    }
-
-    fun getAdmobId(adUnit: AdUnit) : String {
-        return if (adConfig.isDebug) {
-            adUnit.adType.getAdmobDebugId()
-        } else {
-            adProvider[adUnit.name] ?: adUnit.id
-        }
     }
 
     fun setAdProvider(
@@ -121,26 +128,58 @@ object Dora {
         this.adProvider = adProvider
     }
 
-    fun getYandexId(adUnit: AdUnit) : String {
-        return if (adConfig.isDebug) {
-            adUnit.adType.getYandexDebugId()
-        } else {
-            adUnit.id
+    fun setUpAdmob(
+        intersList: List<AdUnit>,
+        nativeList: List<AdUnit>,
+        openAppId: AdUnit,
+        maxNativeCache: Int = 2,
+        nativeIntervalTime: Long = 3000L,
+        loadIntersCallback: LoadInterstitialCallback? = null
+    ) {
+        applicationContext?.let { context ->
+            AdmobInterstitialManager.setUp(
+                listAd = intersList,
+                callback = loadIntersCallback,
+                context = context
+            )
+            AdmobNativeManager.configAd(
+                nativeList,
+                maxNativeCache,
+                nativeIntervalTime
+            )
+            AdmobNativeManager.loadAd(context)
+
+            AdmobOpenAppManager.adUnit = openAppId
         }
     }
+
+    fun setUpYandex(
+        intersUnit: AdUnit,
+        nativeUnit: AdUnit,
+        bannerUnit: AdUnit,
+        openAppId: AdUnit
+    ) {
+        applicationContext?.let {
+            YandexIntersManager.setUpInters(intersUnit, it)
+            YandexNativeManger.setUp(nativeUnit, it)
+            YandexBannerManager.setUp(bannerUnit)
+            YandexOpenApp.setAdUnit(openAppId)
+        }
+    }
+
 
     // Inters
     fun loadInterstitialLegacy(
         adUnit: AdUnit,
     ) {
-        if(applicationContext == null) return
+        if (applicationContext == null) return
 
         CoroutineScope(Dispatchers.Main).launch {
             ensureInitialized()
 
             interstitialLegacyManager.loadInterstitial(
-                applicationContext?:return@launch,
-                getAdmobId(adUnit),
+                applicationContext ?: return@launch,
+                AdIdProvider.getAdId(adUnit, AdProvider.AD_MOB),
             )
         }
     }
@@ -157,7 +196,7 @@ object Dora {
             return
         }
 
-        if(!interstitialLegacyManager.hasAdAvailable()) {
+        if (!interstitialLegacyManager.hasAdAvailable()) {
             showLoadingDialog(activity)
         }
 
@@ -168,7 +207,7 @@ object Dora {
 
             interstitialLegacyManager.showInterstitial(
                 activity = activity,
-                adId = getAdmobId(adUnit),
+                adId = AdIdProvider.getAdId(adUnit, AdProvider.AD_MOB),
                 timeoutLong = timeout ?: adConfig.intersTimeout,
                 callback = object : ShowInterstitialCallback {
                     override fun onDismiss() {
@@ -201,18 +240,28 @@ object Dora {
                         )
 
                         nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                            nativeManager.adState.first { it.isNotEmpty() }
-                            nativeManager.getAndPop(applicationContext ?: return@launch)?.let { nativeAd ->
-                                if(isHandled.compareAndSet(false, true)) {
-                                    val dialog = NativeFullDialog.newInstance(nativeAd) {
-                                        callBack.onDismiss()
+                            AdmobNativeManager.adState.first { it.isNotEmpty() }
+                            AdmobNativeManager.getAndPop(applicationContext ?: return@launch)
+                                ?.let { nativeAd ->
+                                    if (isHandled.compareAndSet(false, true)) {
+                                        val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                            callBack.onDismiss()
+                                            adState = adState.copy(
+                                                isNativeFullShowing = false
+                                            )
+                                        }
+                                        adState = adState.copy(
+                                            isNativeFullShowing = true
+                                        )
+                                        dialog.show(
+                                            activity.supportFragmentManager,
+                                            NativeFullDialog.TAG
+                                        )
                                     }
-                                    dialog.show(activity.supportFragmentManager, NativeFullDialog.TAG)
                                 }
-                            }
                         }
 
-                        if(reloadAdUnit != null) {
+                        if (reloadAdUnit != null) {
                             loadInterstitialLegacy(
                                 reloadAdUnit
                             )
@@ -233,11 +282,11 @@ object Dora {
     private fun showLoadingDialog(
         activity: AppCompatActivity
     ) {
-        if(activity.supportFragmentManager.isStateSaved) {
+        if (activity.supportFragmentManager.isStateSaved) {
             return
         }
 
-        if(activity.supportFragmentManager.findFragmentByTag(LoadingAdDialogFragment.TAG) == null) {
+        if (activity.supportFragmentManager.findFragmentByTag(LoadingAdDialogFragment.TAG) == null) {
             LoadingAdDialogFragment().show(
                 activity.supportFragmentManager,
                 LoadingAdDialogFragment.TAG
@@ -255,17 +304,6 @@ object Dora {
         }
     }
 
-    fun setUpInterstitial(
-        adsList: List<AdUnit>,
-        callback: LoadInterstitialCallback? = null,
-    ) {
-        InterstitialManager.setUp(
-            listAd = adsList,
-            callback = callback,
-            context = applicationContext ?: return
-        )
-    }
-
     fun showInterstitial(
         activity: AppCompatActivity?,
         timeout: Long? = null,
@@ -276,27 +314,28 @@ object Dora {
             return
         }
 
-        InterstitialManager.loadAd(activity)
+        AdmobInterstitialManager.loadAd(activity)
+        YandexIntersManager.loadInterstitialAd(activity)
 
-        if(!InterstitialManager.isAvailable()) {
+        if (!AdmobInterstitialManager.isAvailable()) {
             showLoadingDialog(activity)
         }
 
         activity.lifecycleScope.launch {
             val result = withTimeoutOrNull(timeout ?: adConfig.intersTimeout) {
-                InterstitialManager.adState.first {
+                AdmobInterstitialManager.adState.first {
                     it != null
                 }
             }
 
-            if(result != null) {
-                val isHandled = AtomicBoolean(false)
+            var nativeAdJob: Job? = null
+            val isHandled = AtomicBoolean(false)
 
-                var nativeAdJob: Job? = null
+            if (result != null) {
 
                 result.fullScreenContentCallback = object : FullScreenContentCallback() {
                     override fun onAdShowedFullScreenContent() {
-                        InterstitialManager.onConsumed(activity)
+                        AdmobInterstitialManager.onConsumed(activity)
 
                         hideLoadingDialog(activity)
 
@@ -307,15 +346,20 @@ object Dora {
                         )
 
                         nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                            nativeManager.adState.first { it.isNotEmpty() }
-                            nativeManager.getAndPop(applicationContext ?: return@launch)?.let { nativeAd ->
-                                if(isHandled.compareAndSet(false, true)) {
-                                    val dialog = NativeFullDialog.newInstance(nativeAd) {
-                                        callback.onDismiss()
+                            AdmobNativeManager.adState.first { it.isNotEmpty() }
+                            AdmobNativeManager.getAndPop(applicationContext ?: return@launch)
+                                ?.let { nativeAd ->
+                                    if (isHandled.compareAndSet(false, true)) {
+                                        val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                            callback.onDismiss()
+                                        }
+                                        adState
+                                        dialog.show(
+                                            activity.supportFragmentManager,
+                                            NativeFullDialog.TAG
+                                        )
                                     }
-                                    dialog.show(activity.supportFragmentManager, NativeFullDialog.TAG)
                                 }
-                            }
                         }
 
                         callback.onShow()
@@ -329,22 +373,63 @@ object Dora {
                         )
                         nativeAdJob?.cancel()
 
-                        if(isHandled.compareAndSet(false, true)) {
+                        if (isHandled.compareAndSet(false, true)) {
                             callback.onDismiss()
                         }
                     }
 
                     override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                        InterstitialManager.onConsumed(activity)
+                        AdmobInterstitialManager.onConsumed(activity)
                         hideLoadingDialog(activity)
-                        nativeAdJob?.cancel()
+                        if (YandexIntersManager.isAvailable()) {
+                            YandexIntersManager.showInterstitial(
+                                activity,
+                                callback = object : ShowInterstitialCallback {
+                                    override fun onDismiss() {
+                                        adState = adState.copy(
+                                            isIntersShowing = false
+                                        )
+                                        nativeAdJob?.cancel()
 
-                        callback.onShowFailed()
-                        adState = adState.copy(
-                            isIntersShowing = false
-                        )
+                                        if (isHandled.compareAndSet(false, true)) {
+                                            callback.onDismiss()
+                                        }
+                                    }
 
-                        callback.onShowFailed()
+                                    override fun onShowFailed() {
+                                        callback.onDismiss()
+
+                                        nativeAdJob?.cancel()
+
+                                        callback.onShowFailed()
+                                        adState = adState.copy(
+                                            isIntersShowing = false
+                                        )
+                                    }
+
+                                    override fun onShow() {
+                                        nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                            AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                            AdmobNativeManager.getAndPop(
+                                                applicationContext ?: return@launch
+                                            )?.let { nativeAd ->
+                                                if (isHandled.compareAndSet(false, true)) {
+                                                    val dialog =
+                                                        NativeFullDialog.newInstance(nativeAd) {
+                                                            callback.onDismiss()
+                                                        }
+                                                    adState
+                                                    dialog.show(
+                                                        activity.supportFragmentManager,
+                                                        NativeFullDialog.TAG
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        }
                     }
 
                     override fun onAdImpression() {
@@ -355,28 +440,75 @@ object Dora {
                 result.show(activity)
             } else {
                 hideLoadingDialog(activity)
-                callback.onDismiss()
+
+                if (YandexIntersManager.isAvailable()) {
+                    YandexIntersManager.showInterstitial(
+                        activity,
+                        callback = object : ShowInterstitialCallback {
+                            override fun onDismiss() {
+                                adState = adState.copy(
+                                    isIntersShowing = false
+                                )
+                                nativeAdJob?.cancel()
+
+                                if (isHandled.compareAndSet(false, true)) {
+                                    callback.onDismiss()
+                                }
+                            }
+
+                            override fun onShowFailed() {
+                                callback.onDismiss()
+
+                                nativeAdJob?.cancel()
+
+                                callback.onShowFailed()
+                                adState = adState.copy(
+                                    isIntersShowing = false
+                                )
+                            }
+
+                            override fun onShow() {
+                                nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                    AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                    AdmobNativeManager.getAndPop(
+                                        applicationContext ?: return@launch
+                                    )?.let { nativeAd ->
+                                        if (isHandled.compareAndSet(false, true)) {
+                                            val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                                callback.onDismiss()
+                                            }
+                                            adState
+                                            dialog.show(
+                                                activity.supportFragmentManager,
+                                                NativeFullDialog.TAG
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+
             }
 
         }
     }
 
-    fun getIntersState() = InterstitialManager.adState
+    fun getIntersState() = AdmobInterstitialManager.adState
+
+    fun isYandexInterstitialAvailable(): Boolean = YandexIntersManager.isAvailable()
+
+    fun showYandexInterstitialIfAvailable(
+        activity: Activity,
+        callback: ShowInterstitialCallback,
+    ) {
+        YandexIntersManager.showInterstitial(activity, callback)
+    }
+
+    fun getYandexState() = YandexIntersManager.adState
 
     // Native
-    fun setNativeAds(
-        listAds: List<AdUnit>,
-        maxAdCache: Int = 2,
-        intervalTime: Long = 3000L,
-    ) {
-        nativeManager.configAd(
-            listAds,
-            maxAdCache,
-            intervalTime
-        )
-
-        nativeManager.loadAd(applicationContext?:return)
-    }
     fun loadAndShowNative(
         activity: Activity,
         lifecycleOwner: LifecycleOwner,
@@ -386,11 +518,7 @@ object Dora {
         lifecycleOwner.lifecycleScope.launch {
             ensureInitialized()
 
-//            if(adConfig.admobGuard?.canLoadAd(adUnit) == false) {
-//                return@launch
-//            }
-
-            val layoutAd = when(layout) {
+            val layoutAd = when (layout) {
                 NativeLayout.Native50 -> R.layout.dora_layout_ads_native_50
                 NativeLayout.Native150 -> R.layout.dora_layout_ads_native_150
                 NativeLayout.Native250 -> R.layout.dora_layout_ads_native_250
@@ -400,8 +528,8 @@ object Dora {
                 is NativeLayout.Custom -> layout.layout
             }
 
-            fun showAd(ad: NativeAd) {
-                nativeManager.showNativeAd(
+            fun showAdMob(ad: NativeAd) {
+                AdmobNativeManager.showNativeAd(
                     activity = activity,
                     nativeAd = ad,
                     viewLifecycle = lifecycleOwner.lifecycle,
@@ -410,34 +538,54 @@ object Dora {
                 )
             }
 
-            val cachedAd = nativeManager.getAndPop(applicationContext?:return@launch)
+            val cachedAd = AdmobNativeManager.getAndPop(applicationContext ?: return@launch)
 
             if (cachedAd != null) {
                 Log.d("Dora", "Show Native from Cache")
-                showAd(cachedAd)
+                showAdMob(cachedAd)
                 return@launch
             }
 
-            nativeManager.loadAd(applicationContext?:return@launch)
+            AdmobNativeManager.loadAd(applicationContext ?: return@launch)
 
-            nativeManager.adState.first { it.isNotEmpty() }
+            val isAnyAdAvailable: Flow<Boolean> = combine(
+                AdmobNativeManager.adState,
+                YandexNativeManger.nativeAd
+            ) { admobNatives, yandexNative ->
 
-            nativeManager.getAndPop(applicationContext?:return@launch)?.let { ad ->
-                nativeManager.showNativeAd(
+                admobNatives.isNotEmpty() || yandexNative != null
+            }
+
+            isAnyAdAvailable.first{ it }
+
+            val admob = AdmobNativeManager.getAndPop(activity)
+
+            if (admob != null) {
+                AdmobNativeManager.showNativeAd(
                     activity = activity,
-                    nativeAd = ad,
+                    nativeAd = admob,
                     viewLifecycle = lifecycleOwner.lifecycle,
                     layoutAd = layoutAd,
                     viewGroup = viewGroup,
                 )
             }
+            else {
+                val nativeYandex = YandexNativeManger.nativeAd.value
+                if (nativeYandex != null) {
+                    YandexNativeManger.showNativeAd(
+                        viewGroup = viewGroup,
+                        inflater = activity.layoutInflater
+                    )
+                }
+            }
         }
     }
+
     fun loadNative() {
         CoroutineScope(Dispatchers.IO).launch {
             ensureInitialized()
 
-            nativeManager.loadAd(applicationContext?:return@launch)
+            AdmobNativeManager.loadAd(applicationContext ?: return@launch)
         }
     }
 
@@ -453,76 +601,35 @@ object Dora {
         lifecycleOwner.lifecycleScope.launch {
             ensureInitialized()
 
-            val adView = AdView(activity)
-            adView.adListener = object : AdListener() {
-                override fun onAdFailedToLoad(p0: LoadAdError) {
-                    Log.e(TAG, "load Banner fail: $p0")
+            AdmobBannerHelper.loadBanner(
+                id = AdIdProvider.getAdId(adUnitId, AdProvider.AD_MOB),
+                activity = activity,
+                container = container,
+                adSize = adSize,
+                lifecycleOwner = lifecycleOwner,
+                callback = object : LoadBannerCallback {
+                    override fun onLoadFailed() {
+                        YandexBannerManager.loadBanner(
+                            activity = activity,
+                            container = container,
+                            lifecycleOwner = lifecycleOwner,
+                            callback = object : LoadBannerCallback {},
+                        )
+                    }
                 }
-            }
-            adView.adUnitId = getAdmobId(adUnitId)
-
-            var extras : Bundle? = null
-
-            when(adSize) {
-                AdmobBannerSize.Adaptive -> {
-                    adView.setAdSize(getAdaptiveAdSize(activity, container))
-                    extras = Bundle()
-                    extras.putString("collapsible", "bottom")
-                }
-                AdmobBannerSize.Banner50 -> {
-                    adView.setAdSize(AdSize.BANNER)
-                }
-            }
-
-
-            container.removeAllViews()
-            container.addView(adView)
-
-            val adRequest = if(extras == null) {
-                AdRequest.Builder()
-                    .build()
-            } else {
-                AdRequest.Builder()
-                    .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
-                    .build()
-            }
-
-            adView.loadAd(adRequest)
-
-            lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onResume(owner: LifecycleOwner) {
-                    adView.resume()
-                }
-
-                override fun onPause(owner: LifecycleOwner) {
-                    adView.pause()
-                }
-
-                override fun onDestroy(owner: LifecycleOwner) {
-                    adView.destroy()
-                }
-            })
+            )
         }
-    }
-
-    private fun getAdaptiveAdSize(activity: Activity, container: ViewGroup): AdSize {
-        val displayMetrics = activity.resources.displayMetrics
-        val frameWidth = if (container.width > 0) container.width.toFloat() else displayMetrics.widthPixels.toFloat()
-        val adWidth = (frameWidth / displayMetrics.density).toInt()
-        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
     }
 
     //OpenAd
     fun registerOpenAd(
         application: Application,
-        adUnit: AdUnit
     ) {
         CoroutineScope(Dispatchers.Main).launch {
             ensureInitialized()
 
             openAdManager = OpenAdManager(
                 application,
-                adUnit,
                 object : OpenAdCallback {
                     override fun canShow(): Boolean {
                         return !adState.isShowingAdFullscreen
@@ -555,7 +662,7 @@ object Dora {
 
             withTimeoutOrNull(timeout) {
                 while (true) {
-                    if(openAdManager?.isAvailable() == true) {
+                    if (openAdManager?.isAvailable() == true) {
                         isHandled = true
                         openAdManager?.showAdIfAvailable(activity, onDismiss)
                         break
@@ -564,7 +671,7 @@ object Dora {
                 }
             }
 
-            if(!isHandled) {
+            if (!isHandled) {
                 onDismiss()
             }
         }

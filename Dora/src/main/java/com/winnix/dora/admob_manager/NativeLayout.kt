@@ -1,4 +1,4 @@
-package com.winnix.dora.helper
+package com.winnix.dora.admob_manager
 
 sealed class NativeLayout {
     object Native50 : NativeLayout()

@@ -11,7 +11,7 @@ import com.winnix.adsdk.databinding.ActivityMainBinding
 import com.winnix.dora.model.AdConfig
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.ShowInterstitialCallback
-import com.winnix.dora.helper.NativeLayout
+import com.winnix.dora.admob_manager.NativeLayout
 import com.winnix.dora.model.AdmobBannerSize
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
@@ -79,21 +79,32 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        Dora.registerOpenAd(application, openApp)
-
-        Dora.setNativeAds(
-            listAds = listOf(native1, native2),
-            maxAdCache = 2,
-            intervalTime= 3000L,
+        Dora.setUpAdmob(
+            intersList = listOf(inter, inter, inter),
+            nativeList = listOf(native1, native2),
+            openAppId = openApp,
         )
 
-        Dora.setUpInterstitial(
-            adsList = listOf(
-                inter,
-                inter,
-                inter,
-            )
+        Dora.setUpYandex(
+            intersUnit = inter,
+            nativeUnit = native1,
+            bannerUnit = banner,
+            openAppId =  openApp
         )
+
+//        Dora.setNativeAds(
+//            listAds = listOf(native1, native2),
+//            maxAdCache = 2,
+//            intervalTime= 3000L,
+//        )
+//
+//        Dora.setUpInterstitial(
+//            adsList = listOf(
+//                inter,
+//                inter,
+//                inter,
+//            )
+//        )
 
         Dora.loadNative()
 

@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.winnix.dora.Dora
 import com.winnix.dora.R
+import com.winnix.dora.helper.AdIdProvider
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.AdUnit
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.nativeads.NativeAd
@@ -18,34 +20,45 @@ import com.yandex.mobile.ads.nativeads.NativeAdViewBinder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal object YandexNativeManger {
     private var isWaiting = false
-    private var adUnit : AdUnit? = null
-    private var mNativeAd: NativeAd? = null
+    private var adUnit: AdUnit? = null
+    private val _mNativeAd = MutableStateFlow<NativeAd?>(null)
+    val nativeAd = _mNativeAd.asStateFlow()
     private var isNativeLoading = false
+
+    fun setUp(adUnit: AdUnit, context: Context) {
+        this.adUnit = adUnit
+        loadNativeAd(context)
+    }
 
     fun loadNativeAd(
         context: Context,
     ) {
-        if(mNativeAd != null || isNativeLoading || adUnit == null || isWaiting) {
+        if (_mNativeAd.value != null || isNativeLoading || adUnit == null || isWaiting) {
             return
         }
 
         val loader = NativeAdLoader(context.applicationContext)
 
-        val config = NativeAdRequestConfiguration.Builder(Dora.getYandexId(adUnit!!)).build()
+        val config =
+            NativeAdRequestConfiguration.Builder(AdIdProvider.getAdId(adUnit!!, AdProvider.YANDEX))
+                .build()
 
         loader.setNativeAdLoadListener(object : NativeAdLoadListener {
             override fun onAdLoaded(nativeAd: NativeAd) {
-                mNativeAd = nativeAd
+                _mNativeAd.update { nativeAd }
                 isNativeLoading = false
             }
 
             override fun onAdFailedToLoad(error: AdRequestError) {
                 Log.e("Dora", "Load Yandex Native Failed: ${error.description}")
-                mNativeAd = null
+                _mNativeAd.update { null }
                 isNativeLoading = false
 
                 isWaiting = true
@@ -65,8 +78,12 @@ internal object YandexNativeManger {
         viewGroup: ViewGroup,
         inflater: LayoutInflater
     ) {
-        mNativeAd?.let { nativeAd ->
-            val itemView = inflater.inflate(R.layout.dora_yandex_native_ad_250, viewGroup, false) as NativeAdView
+        _mNativeAd.value?.let { nativeAd ->
+            val itemView = inflater.inflate(
+                R.layout.dora_yandex_native_ad_250,
+                viewGroup,
+                false
+            ) as NativeAdView
 
             val binder = NativeAdViewBinder.Builder(itemView)
                 .setCallToActionView(itemView.findViewById(R.id.ad_call_to_action))
@@ -86,7 +103,7 @@ internal object YandexNativeManger {
                 viewGroup.addView(itemView)
                 viewGroup.visibility = View.VISIBLE
 
-                mNativeAd = null
+                _mNativeAd.update { null }
                 isNativeLoading = false
 
                 loadNativeAd(viewGroup.context)

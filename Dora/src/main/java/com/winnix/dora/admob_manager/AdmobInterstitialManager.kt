@@ -1,4 +1,4 @@
-package com.winnix.dora.helper
+package com.winnix.dora.admob_manager
 
 import android.content.Context
 import android.util.Log
@@ -6,8 +6,9 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadInterstitialCallback
+import com.winnix.dora.helper.AdIdProvider
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.AdUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal object InterstitialManager {
+internal object AdmobInterstitialManager {
     private val _adState = MutableStateFlow<InterstitialAd?>(null)
     val adState = _adState.asStateFlow()
 
@@ -33,8 +34,8 @@ internal object InterstitialManager {
 
     fun setUp(
         listAd: List<AdUnit>,
+        context: Context,
         callback: LoadInterstitialCallback?,
-        context: Context
     ) {
         idList = listAd
         this.callback = callback
@@ -55,11 +56,9 @@ internal object InterstitialManager {
 
         val ad = idList[currentIndex % idList.size]
 
-//        Log.d("TAGG", "loadAd: ${Dora.getAdId(ad)}")
-
         InterstitialAd.load(
             context.applicationContext,
-            Dora.getAdmobId(ad),
+            AdIdProvider.getAdId(ad, AdProvider.AD_MOB),
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(p0: InterstitialAd) {

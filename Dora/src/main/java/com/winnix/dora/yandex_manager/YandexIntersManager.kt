@@ -5,6 +5,9 @@ import android.content.Context
 import android.util.Log
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.helper.AdIdProvider
+import com.winnix.dora.helper.AdProvider
+import com.winnix.dora.helper.LoadAdEnum
 import com.winnix.dora.model.AdUnit
 import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
@@ -17,18 +20,30 @@ import com.yandex.mobile.ads.interstitial.InterstitialAdLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal object YandexIntersManager {
     private var interstitialAd: InterstitialAd? = null
     private var isIntersLoading = false
     private var isWaiting = false
-    private var adUnit : AdUnit? = null
+    private var adUnit: AdUnit? = null
+
+    private val _adState = MutableStateFlow(LoadAdEnum.IDLE)
+    val adState = _adState.asStateFlow()
+
+    fun setUpInters(adUnit: AdUnit, context: Context) {
+        this.adUnit = adUnit
+
+        loadInterstitialAd(context)
+    }
 
     fun loadInterstitialAd(
         context: Context,
     ) {
-        if(interstitialAd != null || isIntersLoading || adUnit == null || isWaiting) {
+        if (interstitialAd != null || isIntersLoading || adUnit == null || isWaiting) {
             return
         }
 
@@ -36,6 +51,7 @@ internal object YandexIntersManager {
             setAdLoadListener(object : InterstitialAdLoadListener {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                     isIntersLoading = false
+                    _adState.update { LoadAdEnum.SUCCESS }
                     this@YandexIntersManager.interstitialAd = interstitialAd
                 }
 
@@ -45,7 +61,7 @@ internal object YandexIntersManager {
                     interstitialAd = null
 
                     isWaiting = true
-
+                    _adState.update { LoadAdEnum.FAILED }
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(6000)
                         isWaiting = false
@@ -55,8 +71,12 @@ internal object YandexIntersManager {
             })
         }
 
-        val adRequest = AdRequestConfiguration.Builder(Dora.getYandexId(adUnit!!)).build()
-        
+        val adRequest =
+            AdRequestConfiguration.Builder(
+                AdIdProvider.getAdId(adUnit!!, AdProvider.YANDEX)
+            ).build()
+
+        _adState.update { LoadAdEnum.LOADING }
         isIntersLoading = true
         interstitialAdLoader.loadAd(adRequest)
     }
@@ -65,21 +85,23 @@ internal object YandexIntersManager {
         activity: Activity,
         callback: ShowInterstitialCallback,
     ) {
-        if(interstitialAd != null) {
+        if (interstitialAd != null) {
             interstitialAd?.apply {
                 setAdEventListener(object : InterstitialAdEventListener {
                     override fun onAdShown() {
                         callback.onShow()
                     }
+
                     override fun onAdFailedToShow(adError: AdError) {
                         interstitialAd?.setAdEventListener(null)
                         interstitialAd = null
 
-                        Log.e("Dora", "yandex show failed: $adError", )
+                        Log.e("Dora", "yandex show failed: $adError")
 
                         loadInterstitialAd(activity)
                         callback.onShowFailed()
                     }
+
                     override fun onAdDismissed() {
                         interstitialAd?.setAdEventListener(null)
                         interstitialAd = null
@@ -87,6 +109,7 @@ internal object YandexIntersManager {
                         loadInterstitialAd(activity)
                         callback.onDismiss()
                     }
+
                     override fun onAdClicked() {}
 
                     override fun onAdImpression(impressionData: ImpressionData?) {}
@@ -97,4 +120,6 @@ internal object YandexIntersManager {
             callback.onShowFailed()
         }
     }
+
+    fun isAvailable(): Boolean = interstitialAd != null
 }

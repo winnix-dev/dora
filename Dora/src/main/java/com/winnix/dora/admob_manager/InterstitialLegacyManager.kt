@@ -1,4 +1,4 @@
-package com.winnix.dora.helper
+package com.winnix.dora.admob_manager
 
 import android.app.Activity
 import android.content.Context

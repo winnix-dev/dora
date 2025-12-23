@@ -8,8 +8,8 @@ import android.view.WindowManager
 import androidx.fragment.app.DialogFragment
 import com.google.android.gms.ads.nativead.NativeAd
 import com.winnix.dora.databinding.DoraLayoutAdsNativeFullBinding
-import com.winnix.dora.helper.NativeHelper
-import com.winnix.dora.helper.NativeHelper.registerWithLifecycle
+import com.winnix.dora.admob_manager.NativeHelper
+import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
 
 class NativeFullDialog private constructor(): DialogFragment() {
     companion object {
