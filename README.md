@@ -121,6 +121,35 @@ override fun onStop() {
 showInters {
     // Hành động sau khi đóng ad
 }
+
+// Trong Splash
+lifecycleScope.launch {
+                val result = Dora.waitForInterstitialAdmobAndYandex(
+                    activity,
+                    DEFAULT_TIME_OUT
+                )
+
+                Log.d(TAG, "initAd: $result")
+
+                if(result) {
+                    lifecycleScope.launch {
+                        Dora.showInterstitialInNoTime(
+                            activity as MainActivity,
+                            object : ShowInterstitialCallback {
+                                override fun onDismiss() {
+                                    // hành động 
+                                }
+
+                                override fun onShow() {
+                                    isShowIntern = true
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    // hành động 
+                }
+            }
 ```
 ### 3. Native
 ```kotlin
