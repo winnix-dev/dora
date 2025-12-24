@@ -9,6 +9,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.helper.AdIdProvider
 import com.winnix.dora.helper.AdProvider
+import com.winnix.dora.helper.LoadAdEnum
 import com.winnix.dora.model.AdUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,9 @@ import kotlinx.coroutines.launch
 internal object AdmobInterstitialManager {
     private val _adState = MutableStateFlow<InterstitialAd?>(null)
     val adState = _adState.asStateFlow()
+
+    private val _loadState = MutableStateFlow(LoadAdEnum.IDLE)
+    val loadState = _loadState.asStateFlow()
 
     private var idList = listOf<AdUnit>()
     private var currentIndex = 0
@@ -56,6 +60,8 @@ internal object AdmobInterstitialManager {
 
         val ad = idList[currentIndex % idList.size]
 
+        isLoading = true
+        _loadState.update { LoadAdEnum.LOADING }
         InterstitialAd.load(
             context.applicationContext,
             AdIdProvider.getAdId(ad, AdProvider.AD_MOB),
@@ -64,6 +70,8 @@ internal object AdmobInterstitialManager {
                 override fun onAdLoaded(p0: InterstitialAd) {
                     isLoading = false
                     _adState.update { p0 }
+                    _loadState.update { LoadAdEnum.SUCCESS }
+
                     callback?.onLoaded()
                 }
 
@@ -72,9 +80,13 @@ internal object AdmobInterstitialManager {
                     callback?.onFailed(p0)
 
                     Log.e("Dora", "Inters Failed: $ad $p0")
+                    _loadState.update { LoadAdEnum.FAILED }
 
                     CoroutineScope(Dispatchers.Main).launch {
                         isWaiting = true
+                        if (p0.code == 0) {
+                            delay(10_000L)
+                        }
                         delay(retryTime)
                         currentIndex ++
                         isWaiting = false

@@ -104,6 +104,9 @@ internal object AdmobNativeManager {
                                 currentIndex++
 
                                 CoroutineScope(Dispatchers.IO).launch {
+                                    if(p0.code == 0) {
+                                        delay(10_000L)
+                                    }
                                     delay(intervalTime)
                                     isLoading = false
                                     loadAd(context)

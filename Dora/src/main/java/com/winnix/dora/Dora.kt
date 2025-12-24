@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -35,6 +36,7 @@ import com.winnix.dora.callback.LoadBannerCallback
 import com.winnix.dora.helper.OpenAdManager
 import com.winnix.dora.helper.AdIdProvider
 import com.winnix.dora.helper.AdProvider
+import com.winnix.dora.helper.LoadAdEnum
 import com.winnix.dora.helper.UMPHelper
 import com.winnix.dora.model.AdConfig
 import com.winnix.dora.model.AdState
@@ -352,8 +354,13 @@ object Dora {
                                     if (isHandled.compareAndSet(false, true)) {
                                         val dialog = NativeFullDialog.newInstance(nativeAd) {
                                             callback.onDismiss()
+                                            adState = adState.copy(
+                                                isNativeFullShowing = false
+                                            )
                                         }
-                                        adState
+                                        adState = adState.copy(
+                                            isNativeFullShowing = true
+                                        )
                                         dialog.show(
                                             activity.supportFragmentManager,
                                             NativeFullDialog.TAG
@@ -417,8 +424,13 @@ object Dora {
                                                     val dialog =
                                                         NativeFullDialog.newInstance(nativeAd) {
                                                             callback.onDismiss()
+                                                            adState = adState.copy(
+                                                                isNativeFullShowing = false
+                                                            )
                                                         }
-                                                    adState
+                                                    adState = adState.copy(
+                                                        isNativeFullShowing = true
+                                                    )
                                                     dialog.show(
                                                         activity.supportFragmentManager,
                                                         NativeFullDialog.TAG
@@ -426,6 +438,10 @@ object Dora {
                                                 }
                                             }
                                         }
+
+                                        adState = adState.copy(
+                                            isIntersShowing = true
+                                        )
                                     }
                                 }
                             )
@@ -438,65 +454,294 @@ object Dora {
                 }
 
                 result.show(activity)
-            } else {
+            }
+            else {
                 hideLoadingDialog(activity)
 
-                if (YandexIntersManager.isAvailable()) {
-                    YandexIntersManager.showInterstitial(
-                        activity,
-                        callback = object : ShowInterstitialCallback {
-                            override fun onDismiss() {
-                                adState = adState.copy(
-                                    isIntersShowing = false
-                                )
-                                nativeAdJob?.cancel()
+                YandexIntersManager.showInterstitial(
+                    activity,
+                    callback = object : ShowInterstitialCallback {
+                        override fun onDismiss() {
+                            adState = adState.copy(
+                                isIntersShowing = false
+                            )
+                            nativeAdJob?.cancel()
 
-                                if (isHandled.compareAndSet(false, true)) {
-                                    callback.onDismiss()
-                                }
-                            }
-
-                            override fun onShowFailed() {
+                            if (isHandled.compareAndSet(false, true)) {
                                 callback.onDismiss()
-
-                                nativeAdJob?.cancel()
-
-                                callback.onShowFailed()
-                                adState = adState.copy(
-                                    isIntersShowing = false
-                                )
                             }
+                        }
 
-                            override fun onShow() {
-                                nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                                    AdmobNativeManager.adState.first { it.isNotEmpty() }
-                                    AdmobNativeManager.getAndPop(
-                                        applicationContext ?: return@launch
-                                    )?.let { nativeAd ->
-                                        if (isHandled.compareAndSet(false, true)) {
-                                            val dialog = NativeFullDialog.newInstance(nativeAd) {
-                                                callback.onDismiss()
-                                            }
-                                            adState
-                                            dialog.show(
-                                                activity.supportFragmentManager,
-                                                NativeFullDialog.TAG
+                        override fun onShowFailed() {
+                            callback.onDismiss()
+
+                            nativeAdJob?.cancel()
+
+                            callback.onShowFailed()
+
+                            adState = adState.copy(
+                                isIntersShowing = false
+                            )
+                        }
+
+                        override fun onShow() {
+                            adState = adState.copy(
+                                isIntersShowing = true
+                            )
+                            nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                AdmobNativeManager.getAndPop(
+                                    applicationContext ?: return@launch
+                                )?.let { nativeAd ->
+                                    if (isHandled.compareAndSet(false, true)) {
+                                        val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                            callback.onDismiss()
+
+                                            adState = adState.copy(
+                                                isNativeFullShowing = false
                                             )
                                         }
+                                        adState = adState.copy(
+                                            isNativeFullShowing = true
+                                        )
+                                        dialog.show(
+                                            activity.supportFragmentManager,
+                                            NativeFullDialog.TAG
+                                        )
                                     }
                                 }
                             }
                         }
-                    )
-                }
+                    }
+                )
 
             }
-
         }
     }
 
-    fun getIntersState() = AdmobInterstitialManager.adState
+    fun showInterstitialInNoTime(
+        activity: AppCompatActivity?,
+        callback: ShowInterstitialCallback
+    ) {
+        if (activity == null || activity.isDestroyed || activity.isFinishing || adState.isShowingAdFullscreen) {
+            callback.onDismiss()
+            return
+        }
 
+        activity.lifecycleScope.launch {
+
+            var nativeAdJob: Job? = null
+            val isHandled = AtomicBoolean(false)
+
+            if (AdmobInterstitialManager.adState.value != null) {
+
+                AdmobInterstitialManager.adState.value?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                    override fun onAdShowedFullScreenContent() {
+                        AdmobInterstitialManager.onConsumed(activity)
+
+                        adState = adState.copy(
+                            isIntersShowing = true
+                        )
+
+                        nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                            AdmobNativeManager.adState.first { it.isNotEmpty() }
+                            AdmobNativeManager.getAndPop(applicationContext ?: return@launch)
+                                ?.let { nativeAd ->
+                                    if (isHandled.compareAndSet(false, true)) {
+                                        val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                            callback.onDismiss()
+                                            adState = adState.copy(
+                                                isNativeFullShowing = false
+                                            )
+                                        }
+                                        adState = adState.copy(
+                                            isNativeFullShowing = true
+                                        )
+                                        dialog.show(
+                                            activity.supportFragmentManager,
+                                            NativeFullDialog.TAG
+                                        )
+                                    }
+                                }
+                        }
+
+                        callback.onShow()
+                    }
+
+                    override fun onAdDismissedFullScreenContent() {
+                        hideLoadingDialog(activity)
+
+                        adState = adState.copy(
+                            isIntersShowing = false
+                        )
+                        nativeAdJob?.cancel()
+
+                        if (isHandled.compareAndSet(false, true)) {
+                            callback.onDismiss()
+                        }
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(p0: AdError) {
+                        AdmobInterstitialManager.onConsumed(activity)
+                        hideLoadingDialog(activity)
+                        if (YandexIntersManager.isAvailable()) {
+                            YandexIntersManager.showInterstitial(
+                                activity,
+                                callback = object : ShowInterstitialCallback {
+                                    override fun onDismiss() {
+                                        adState = adState.copy(
+                                            isIntersShowing = false
+                                        )
+                                        nativeAdJob?.cancel()
+
+                                        if (isHandled.compareAndSet(false, true)) {
+                                            callback.onDismiss()
+                                        }
+                                    }
+
+                                    override fun onShowFailed() {
+                                        callback.onDismiss()
+
+                                        nativeAdJob?.cancel()
+
+                                        callback.onShowFailed()
+                                        adState = adState.copy(
+                                            isIntersShowing = false
+                                        )
+                                    }
+
+                                    override fun onShow() {
+                                        nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                            AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                            AdmobNativeManager.getAndPop(
+                                                applicationContext ?: return@launch
+                                            )?.let { nativeAd ->
+                                                if (isHandled.compareAndSet(false, true)) {
+                                                    val dialog =
+                                                        NativeFullDialog.newInstance(nativeAd) {
+                                                            callback.onDismiss()
+                                                            adState = adState.copy(
+                                                                isNativeFullShowing = false
+                                                            )
+                                                        }
+                                                    adState = adState.copy(
+                                                        isNativeFullShowing = true
+                                                    )
+                                                    dialog.show(
+                                                        activity.supportFragmentManager,
+                                                        NativeFullDialog.TAG
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        adState = adState.copy(
+                                            isIntersShowing = true
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    override fun onAdImpression() {
+                        callback.onImpression()
+                    }
+                }
+
+                AdmobInterstitialManager.adState.value?.show(activity)
+            }
+            else if(YandexIntersManager.isAvailable()) {
+                YandexIntersManager.showInterstitial(
+                    activity,
+                    callback = object : ShowInterstitialCallback {
+                        override fun onDismiss() {
+                            adState = adState.copy(
+                                isIntersShowing = false
+                            )
+                            nativeAdJob?.cancel()
+
+                            if (isHandled.compareAndSet(false, true)) {
+                                callback.onDismiss()
+                            }
+                        }
+
+                        override fun onShowFailed() {
+                            callback.onDismiss()
+
+                            nativeAdJob?.cancel()
+
+                            callback.onShowFailed()
+
+                            adState = adState.copy(
+                                isIntersShowing = false
+                            )
+                        }
+
+                        override fun onShow() {
+                            adState = adState.copy(
+                                isIntersShowing = true
+                            )
+                            nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                AdmobNativeManager.getAndPop(
+                                    applicationContext ?: return@launch
+                                )?.let { nativeAd ->
+                                    if (isHandled.compareAndSet(false, true)) {
+                                        val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                            callback.onDismiss()
+
+                                            adState = adState.copy(
+                                                isNativeFullShowing = false
+                                            )
+                                        }
+                                        adState = adState.copy(
+                                            isNativeFullShowing = true
+                                        )
+                                        dialog.show(
+                                            activity.supportFragmentManager,
+                                            NativeFullDialog.TAG
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+            else {
+                callback.onDismiss()
+            }
+        }
+    }
+
+    suspend fun waitForInterstitialAdmobAndYandex(
+        activity: FragmentActivity,
+        timeout: Long
+    ) : Boolean {
+        val result: Boolean? = withTimeoutOrNull(timeout) {
+            var result = false
+            getInterLoadState()
+                .first { it == LoadAdEnum.SUCCESS || it == LoadAdEnum.FAILED }
+
+            if (getIntersState().value != null) {
+                result = true
+            } else {
+                getYandexState()
+                    .first { it == LoadAdEnum.SUCCESS || it == LoadAdEnum.FAILED }
+
+                if (isYandexInterstitialAvailable()) {
+                    result = true
+                }
+            }
+
+            result
+        }
+        return result == true
+    }
+
+    fun getIntersState() = AdmobInterstitialManager.adState
+    fun getInterLoadState() = AdmobInterstitialManager.loadState
     fun isYandexInterstitialAvailable(): Boolean = YandexIntersManager.isAvailable()
 
     fun showYandexInterstitialIfAvailable(

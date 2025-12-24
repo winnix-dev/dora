@@ -7,19 +7,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.winnix.adsdk.databinding.ActivityMainBinding
-import com.winnix.dora.model.AdConfig
 import com.winnix.dora.Dora
-import com.winnix.dora.callback.ShowInterstitialCallback
 import com.winnix.dora.admob_manager.NativeLayout
-import com.winnix.dora.model.AdmobBannerSize
+import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.model.AdConfig
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
+import com.winnix.dora.model.AdmobBannerSize
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        const val TAG = "Tag MainActivity"
+        const val TAG = "Tagg MainActivity"
     }
     private lateinit var binding: ActivityMainBinding
 
@@ -91,6 +93,8 @@ class MainActivity : AppCompatActivity() {
             bannerUnit = banner,
             openAppId =  openApp
         )
+        
+        
 
 //        Dora.setNativeAds(
 //            listAds = listOf(native1, native2),
@@ -110,23 +114,47 @@ class MainActivity : AppCompatActivity() {
 
         binding.apply {
             btnInters.setOnClickListener {
-                Dora.showInterstitial(
-                    activity = this@MainActivity,
-                    timeout = null,
-                    callback = object : ShowInterstitialCallback {
-                        override fun onDismiss() {
-                            Log.d(TAG, "On Inters Dismiss")
-                        }
+                lifecycleScope.launch {
+                    val result = Dora.waitForInterstitialAdmobAndYandex(
+                        this@MainActivity,
+                        16000L
+                    )
 
-                        override fun onShowFailed() {
-                            Log.d(TAG, "On Inters Show Failed")
-                        }
+                    Log.d(TAG, "onCreate: $result")
 
-                        override fun onShow() {
-                            Log.d(TAG, "On Inters Show")
-                        }
+                    if(result) {
+                        Dora.showInterstitialInNoTime(
+                            this@MainActivity,
+                            object : ShowInterstitialCallback {
+                                override fun onDismiss() {
+                                    Log.d(TAG, "onDismiss: SHOW INTERS")
+                                }
+
+                            }
+                        )
+                    } else {
+                        Log.d(TAG, "onCreate: SHow FAILD")
                     }
-                )
+                }
+
+                
+//                Dora.showInterstitial(
+//                    activity = this@MainActivity,
+//                    timeout = null,
+//                    callback = object : ShowInterstitialCallback {
+//                        override fun onDismiss() {
+//                            Log.d(TAG, "On Inters Dismiss")
+//                        }
+//
+//                        override fun onShowFailed() {
+//                            Log.d(TAG, "On Inters Show Failed")
+//                        }
+//
+//                        override fun onShow() {
+//                            Log.d(TAG, "On Inters Show")
+//                        }
+//                    }
+//                )
             }
 
             btnNative.setOnClickListener {

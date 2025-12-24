@@ -14,7 +14,9 @@ id("com.android.application") version "8.13.1" apply false
 id("com.android.library") version "8.13.1" apply false
 id("org.jetbrains.kotlin.android") version "2.1.0" apply false
 id("com.google.devtools.ksp") version "2.1.0-1.0.29" apply false
+// Nhớ đổi cả trong Build Gradle của app để cùng phiên bản
 id ("com.google.dagger.hilt.android") version "2.57.1" apply false
+
 ```
 Thêm App ID vào Manifest
 ```xml
@@ -27,130 +29,152 @@ Thêm App ID vào Manifest
 ### 1. Initialize SDK
 Gọi ở Màn Splash để tránh ANR
 ```kotlin
-// AdmobGuard dùng để check các điều kiện load Ad và Show Ad
-val admobGuard = AdmobGuard.apply {
-    // Thêm các Rule ở đây
-}
-// AdConfig dùng để sửa các thông số mặc định của Ad
-val config = AdConfig(
-    isDebug= true,
-    intersTimeout= 6000L,
-    maxNativeCache= 2,
-    nativeTimeInterval= 3000L,
-    admobGuard = null
-)
-Dora.initialize(activity, adConfig)
-```
-### 2. AdRule
-Đây là nơi định nghĩa các luật cho Ad (Ad có được show hay không)
-
-```kotlin
-// Định nghĩa các Rule
-class PreConditionRule(
-    val condition: (ad: AdmobUnit) -> Boolean
-) : AdmobRule {
-    override fun checking(ad: AdmobUnit): Boolean {
-        return condition(ad)
-    }
-    override fun onAdShow(ad: AdmobUnit) {
-        //Làm gì đó
-    }
-}
-
-// Sử dụng trong code
-val admobGuard = AdmobGuard.apply {
-    addRule(
-        PreConditionRule()
-    )
-    addShowRule(
-        PreConditionRule2()
-    )
-}
-```
-### 3. Interstitial Ad
-```kotlin
-// Định nghĩa AdUnit
-private val inter = AdmobUnit(
+//Tạo các AdUnitID trong app
+val YandexNative = AdUnit(
+    name = "All_Native",
+    adType = AdType.Native,
     id = "",
-    name = "",
-    adType = AdmobType.Inters
 )
-// Load Ad
-Dora.loadInterstitial(
-    inter
+val LanguageNative = AdUnit(
+    name = "wp1_Language_Native",
+    adType = AdType.Native,
+    id = "", // Updated
+) //...
+
+// Khởi tạo ở màn Splash
+Dora.initialize(
+    activity = activity,
+    adConfig = AdConfig(
+        isDebug = BuildConfig.DEBUG,
+        nativeTimeInterval = 5000
+    )
 )
-// Load Ad với timeout
-Dora.showInterstitial(
-    activity = this@MainActivity,
-    adUnit = inter,
-    reloadAdUnit = null,
-    timeout = null, // Để Null nếu muốn lấy giá trị mặc định
-    callBack = object : ShowInterstitialCallback {
-        override fun onDismiss() {
-            // Khi Show thành công và người dùng ấn đóng quảng cáo
-        }
 
-        override fun onShowFailed() {
-            // Khi Show thất bại hoặc ko có ad trả về trong timeout
-        }
+Dora.setUpAdmob(
+    intersList = listOf(
+        AdResource.MainInterstitial,
+        AdResource.SplashInterstitial,
+        AdResource.OnboardingInterstitial,
+    ),
+    nativeList = listOf(
+        AdResource.SplashNative,
+        AdResource.LanguageNative,
+        AdResource.OnboardingNative,
+    ),
+    openAppId = AdResource.ReturnAppOpenAd,
+)
 
-        override fun onShow() {
-            // Khi ad show lên được
+Dora.setUpYandex(
+    intersUnit = AdResource.YandexInters,
+    nativeUnit = AdResource.YandexNative,
+    bannerUnit = AdResource.YandexBanner,
+    openAppId = AdResource.YandexOpenApp
+)
+```
+Các ad tạo ở base fragment để gọi cho dễ
+### 2. Interstitial
+```kotlin
+// Tạo thêm 1 biến trong base fragment và 1 object mới để check màn trước màn sau
+// Tạo 1 object AdConfig
+object AdConfig {
+    var isShowInterBefore = false
+}
+//Trong BaseFragment
+var isShowIntern = false
+//Tạo 1 hàm showInters để gọi cho nhanh
+fun showInters(
+    timeout: Long = 6000L,
+    onDismiss: () -> Unit
+) {
+    if(AdConfig.isShowInterBefore) {
+        onDismiss()
+        return
+    }
+    (activity as? MainActivity)?.let { activity ->
+        Dora.showInterstitial(
+            activity = activity,
+            timeout = timeout,
+            callback = object : ShowInterstitialCallback {
+                override fun onDismiss() {
+                    onDismiss()
+                }
+
+                override fun onShowFailed() {
+                    onDismiss()
+                }
+
+                override fun onShow() {
+                    isShowIntern = true
+                }
+            }
+        )
+    }
+}
+// Override lại onStop
+override fun onStop() {
+    super.onStop()
+
+    AdConfig.isShowInterBefore = isShowIntern
+}
+
+//Gọi trong Các màn
+showInters {
+    // Hành động sau khi đóng ad
+}
+```
+### 3. Native
+```kotlin
+// Thêm hàm trong base fragment Đã define sẵn 50, 100, 150 , 250, ... 
+fun showNative(
+        viewGroup: ViewGroup,
+        layout: NativeLayout = NativeLayout.Native250
+    ) {
+        activity?.let { activity ->
+            Dora.loadAndShowNative(
+                activity,
+                lifecycleOwner = viewLifecycleOwner,
+                viewGroup = viewGroup,
+                layout = layout
+            )
         }
     }
-)
-```
-#### Với điều kiện check màn trước màn sau
-//TODO: Theem sau
-### 4. Native Ad
-**Thêm 1 FrameLayout vào View**
-```xml
-<FrameLayout
-   android:id="@+id/flAd"
-   android:layout_width="match_parent"
-   android:layout_height="wrap_content"
-   app:layout_constraintBottom_toBottomOf="parent"
-/>
-```
-**Khởi tạo Native**
-```kotlin
-Dora.setNativeAds(
-     listAds = listOf(native1, native2),
-     maxAdCache = 2, // Có thể ko set
-     intervalTime= 3000L, // Có thể ko set
-)
-```
-**Gọi trong Fragment**
-```kotlin
-Dora.loadAndShowNative(
-    activity = this@MainActivity,
-    lifecycleOwner = viewlifecycleOwner, // Truyền View Lifecycle thay vì chỉ Lifecycle
-    viewGroup = binding.flAd,
-    // Có sẵn: 50, 150, 250, collapsible, full, full với next btn
-    layout = NativeLayout.Native50, 
-)
-```
-### 5. Banner Ad
-```kotlin
-Dora.loadBanner(
-    activity = this@MainActivity,
-    container = binding.flAd,
-    adSize = AdmobBannerSize.Adaptive,
-    lifecycleOwner = this@MainActivity,
-    adUnitId = banner
-)
-```
 
-### 6. Open App
-Open App sẽ có 2 kiểu, 1 là Hot Start(hiển thị ở màn plash) hoặc Cold Start(show lúc mở lên)
+//Gọi trong màn, nếu cần sửa layout ad thì sửa
+showNative(binding.flAds)
+```
+### 4. banner
 ```kotlin
-// Đăng kí 
-Dora.registerOpenAd(application, openApp)
-// Cold Start
-Dora.showOpenAd(
-    6000L,
-    this@MainActivity,
-) {
-    Log.d(TAG, "Close Open App")
+//Base Fragment
+fun showBanner(
+        container: ViewGroup,
+        adSize: AdmobBannerSize,
+        adUnitId: AdUnit
+    ) {
+        activity?.let { activity ->
+            Dora.loadBanner(
+                activity = activity,
+                container = container,
+                adSize = adSize,
+                lifecycleOwner = viewLifecycleOwner,
+                adUnitId = adUnitId
+            )
+        }
+    }
+
+// Dùng trong màn
+showBanner(
+    container = binding.flAds,
+    adSize = AdmobBannerSize.Adaptive,
+    adUnitId = AdResource.PreviewBannerCollapsible
+)
+```
+### 5. open app
+```kotlin
+// GỌi trong Application 
+override fun onCreate() {
+    super.onCreate()
+
+    Dora.registerOpenAd(this)
+
 }
 ```

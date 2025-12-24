@@ -64,6 +64,9 @@ internal object YandexNativeManger {
                 isWaiting = true
 
                 CoroutineScope(Dispatchers.Main).launch {
+                    if(error.code == 0) {
+                        delay(10_000L)
+                    }
                     delay(6500)
                     isWaiting = false
                     loadNativeAd(context)

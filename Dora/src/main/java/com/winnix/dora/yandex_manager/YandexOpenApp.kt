@@ -35,7 +35,6 @@ object YandexOpenApp {
             }
 
             override fun onAdLoaded(appOpenAd: AppOpenAd) {
-                Log.d("TAGG", "onAdLoaded: Yandex ")
 
                 openAd = appOpenAd
                 isLoading = false

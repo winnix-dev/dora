@@ -11,7 +11,7 @@ import com.winnix.dora.databinding.DoraLayoutAdsNativeFullBinding
 import com.winnix.dora.admob_manager.NativeHelper
 import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
 
-class NativeFullDialog private constructor(): DialogFragment() {
+class NativeFullDialog : DialogFragment() {
     companion object {
         const val TAG = "NativeFullDialog"
 

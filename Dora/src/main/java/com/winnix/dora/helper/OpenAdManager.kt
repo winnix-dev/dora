@@ -48,6 +48,7 @@ class OpenAdManager(
         activity: Activity,
         onComplete: () -> Unit
     ) {
+        Log.d("DORA OpenAd", "showAdIfAvailable: ")
         if (activity.isFinishing || activity.isDestroyed) {
             onComplete()
             return
@@ -72,7 +73,6 @@ class OpenAdManager(
                 }
 
                 override fun onShowFail() {
-                    Log.e("Dora", "Yandex Request To Show")
                     YandexOpenApp.showAd(
                         activity,
                         callback = object : ShowAdCallback {

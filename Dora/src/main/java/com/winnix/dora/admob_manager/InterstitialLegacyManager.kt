@@ -2,6 +2,7 @@ package com.winnix.dora.admob_manager
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -27,6 +28,8 @@ class InterstitialLegacyManager {
         callback: LoadInterstitialCallback? = null
     ) {
         val appContext = context.applicationContext
+
+        Log.d("Dora", "loadInterstitial: $id")
 
         if (mInterstitialAd != null || isLoading) {
             return

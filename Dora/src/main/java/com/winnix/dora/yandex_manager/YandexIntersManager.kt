@@ -51,18 +51,21 @@ internal object YandexIntersManager {
             setAdLoadListener(object : InterstitialAdLoadListener {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                     isIntersLoading = false
-                    _adState.update { LoadAdEnum.SUCCESS }
                     this@YandexIntersManager.interstitialAd = interstitialAd
+                    _adState.update { LoadAdEnum.SUCCESS }
                 }
 
                 override fun onAdFailedToLoad(error: AdRequestError) {
-                    Log.e("Dora", "Load Ad Failed $error")
+                    Log.e("Dora", "Load Inters Yandex Failed $error")
                     isIntersLoading = false
                     interstitialAd = null
 
-                    isWaiting = true
                     _adState.update { LoadAdEnum.FAILED }
+                    isWaiting = true
                     CoroutineScope(Dispatchers.Main).launch {
+                        if(error.code == 0) {
+                            delay(8000L)
+                        }
                         delay(6000)
                         isWaiting = false
                         loadInterstitialAd(context)
