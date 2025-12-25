@@ -70,6 +70,26 @@ Dora.setUpYandex(
     bannerUnit = AdResource.YandexBanner,
     openAppId = AdResource.YandexOpenApp
 )
+
+//Thêm các AdGuard
+Dora.setAdGuard(
+    AdmobGuard.Builder()
+        .setOpenAppRule(
+            object : AdmobRule {
+                override fun checking(): () -> Boolean {
+                    return { false }
+                }
+            }
+        )
+        .setInterstitialRule(
+            object : AdmobRule {
+                override fun checking(): () -> Boolean {
+                    return { false }
+                }
+            }
+        )
+        .build()
+)
 ```
 Các ad tạo ở base fragment để gọi cho dễ
 ### 2. Interstitial

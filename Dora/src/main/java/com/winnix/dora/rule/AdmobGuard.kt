@@ -1,24 +1,61 @@
 package com.winnix.dora.rule
 
-import com.winnix.dora.model.AdUnit
+class AdmobGuard internal constructor(
+    val interstitialRule: AdmobRule? = null,
+    val nativeRule: AdmobRule? = null,
+    val bannerRule: AdmobRule? = null,
+    val openAppRule: AdmobRule? = null,
+    val nativeFullRule: AdmobRule? = null,
+    val adRule: AdmobRule? = null
+) {
+    fun checkAd() : Boolean = (adRule?.checking())?.invoke() != false
+    fun checkInters() : Boolean = (interstitialRule?.checking())?.invoke() != false && checkAd()
+    fun checkNative() : Boolean = (nativeRule?.checking())?.invoke() != false && checkAd()
+    fun checkBanner() : Boolean = (bannerRule?.checking())?.invoke() != false && checkAd()
+    fun checkNativeFull() : Boolean = (nativeFullRule?.checking())?.invoke() != false && checkAd()
+    fun checkOpenApp() : Boolean = (openAppRule?.checking())?.invoke() != false && checkAd()
 
-class AdmobGuard {
-    private val adRules = mutableListOf<AdmobRule>()
-    private val showAdRules = mutableListOf<AdmobRule>()
+    class Builder {
+        private var interstitialRule: AdmobRule? = null
+        private var nativeRule: AdmobRule? = null
+        private var bannerRule: AdmobRule? = null
+        private var openAppRule: AdmobRule? = null
+        private var adRule: AdmobRule? = null
+        private var nativeFullRule: AdmobRule? = null
 
-    fun addRule(rule: AdmobRule) {
-        adRules.add(rule)
-    }
+        fun setInterstitialRule(interstitialRule: AdmobRule) = apply {
+            this.interstitialRule = interstitialRule
+        }
 
-    fun addShowRule(rule: AdmobRule) {
-        showAdRules.add(rule)
-    }
+        fun setNativeRule(nativeRule: AdmobRule) = apply {
+            this.nativeRule = nativeRule
+        }
 
-    fun canLoadAd(ad: AdUnit) : Boolean {
-        return adRules.all { it.checking(ad) }
-    }
+        fun setBannerRule(bannerRule: AdmobRule) = apply {
+            this.bannerRule = bannerRule
+        }
 
-    fun canShowAd(ad: AdUnit) : Boolean {
-        return adRules.all { it.checking(ad) } && showAdRules.all { it.checking(ad) }
+        fun setOpenAppRule(openAppRule: AdmobRule) = apply {
+            this.openAppRule = openAppRule
+        }
+
+        fun setAdRule(adRule: AdmobRule) = apply {
+            this.adRule = adRule
+        }
+
+        fun setNativeFullRule(adRule: AdmobRule) = apply {
+            this.nativeFullRule = adRule
+        }
+
+        fun build() : AdmobGuard {
+            return AdmobGuard(
+                interstitialRule = interstitialRule,
+                nativeRule = nativeRule,
+                bannerRule = bannerRule,
+                openAppRule = openAppRule,
+                nativeFullRule = nativeFullRule,
+                adRule = adRule
+            )
+        }
     }
 }

@@ -16,6 +16,8 @@ import com.winnix.dora.model.AdConfig
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
 import com.winnix.dora.model.AdmobBannerSize
+import com.winnix.dora.rule.AdmobGuard
+import com.winnix.dora.rule.AdmobRule
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -94,7 +96,25 @@ class MainActivity : AppCompatActivity() {
             openAppId =  openApp
         )
         
-        
+        Dora.setAdGuard(
+            AdmobGuard.Builder()
+                .setOpenAppRule(
+                    object : AdmobRule {
+                        override fun checking(): () -> Boolean {
+                            return { false }
+                        }
+                    }
+                )
+                .setInterstitialRule(
+                    object : AdmobRule {
+                        override fun checking(): () -> Boolean {
+                            return { false }
+                        }
+
+                    }
+                )
+                .build()
+        )
 
 //        Dora.setNativeAds(
 //            listAds = listOf(native1, native2),
@@ -116,7 +136,6 @@ class MainActivity : AppCompatActivity() {
             btnInters.setOnClickListener {
                 lifecycleScope.launch {
                     val result = Dora.waitForInterstitialAdmobAndYandex(
-                        this@MainActivity,
                         16000L
                     )
 

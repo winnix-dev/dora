@@ -7,15 +7,9 @@ import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.appopen.AppOpenAd
 import com.winnix.dora.admob_manager.AdmobOpenAppManager
 import com.winnix.dora.callback.OpenAdCallback
 import com.winnix.dora.callback.ShowAdCallback
-import com.winnix.dora.model.AdUnit
 import com.winnix.dora.yandex_manager.YandexOpenApp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +34,9 @@ class OpenAdManager(
     }
 
     fun loadAd() {
+        if(! callback.canLoad()() ) {
+            return
+        }
         AdmobOpenAppManager.loadAd(application)
         YandexOpenApp.loadAd()
     }
@@ -54,7 +51,7 @@ class OpenAdManager(
             return
         }
 
-        if (_showState.value || !callback.canShow()) {
+        if (_showState.value || !callback.canShow()()) {
             onComplete()
             return
         }
