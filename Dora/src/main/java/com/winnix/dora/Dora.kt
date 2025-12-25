@@ -355,29 +355,30 @@ object Dora {
                             isIntersShowing = true
                         )
 
-                        nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                            AdmobNativeManager.adState.first { it.isNotEmpty() }
-                            AdmobNativeManager.getAndPop(applicationContext ?: return@launch)
-                                ?.let { nativeAd ->
-
-                                    if (canShowDialog(activity, NativeFullDialog.TAG)) {
-                                        if (isHandled.compareAndSet(false, true)) {
-                                            val dialog = NativeFullDialog.newInstance(nativeAd) {
-                                                callback.onDismiss()
+                        if(adGuard.checkNativeFull()) {
+                            nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                AdmobNativeManager.getAndPop(applicationContext ?: return@launch)
+                                    ?.let { nativeAd ->
+                                        if (canShowDialog(activity, NativeFullDialog.TAG)) {
+                                            if (isHandled.compareAndSet(false, true)) {
+                                                val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                                    callback.onDismiss()
+                                                    adState = adState.copy(
+                                                        isNativeFullShowing = false
+                                                    )
+                                                }
                                                 adState = adState.copy(
-                                                    isNativeFullShowing = false
+                                                    isNativeFullShowing = true
+                                                )
+                                                dialog.show(
+                                                    activity.supportFragmentManager,
+                                                    NativeFullDialog.TAG
                                                 )
                                             }
-                                            adState = adState.copy(
-                                                isNativeFullShowing = true
-                                            )
-                                            dialog.show(
-                                                activity.supportFragmentManager,
-                                                NativeFullDialog.TAG
-                                            )
                                         }
                                     }
-                                }
+                            }
                         }
 
                         callback.onShow()
@@ -426,30 +427,32 @@ object Dora {
                                     }
 
                                     override fun onShow() {
-                                        nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                                            AdmobNativeManager.adState.first { it.isNotEmpty() }
-                                            AdmobNativeManager.getAndPop(
-                                                applicationContext ?: return@launch
-                                            )?.let { nativeAd ->
-                                                if (canShowDialog(activity, NativeFullDialog.TAG)) {
-                                                    if (isHandled.compareAndSet(false, true)) {
-                                                        val dialog =
-                                                            NativeFullDialog.newInstance(nativeAd) {
-                                                                callback.onDismiss()
-                                                                adState = adState.copy(
-                                                                    isNativeFullShowing = false
-                                                                )
-                                                            }
-                                                        adState = adState.copy(
-                                                            isNativeFullShowing = true
-                                                        )
-                                                        dialog.show(
-                                                            activity.supportFragmentManager,
-                                                            NativeFullDialog.TAG
-                                                        )
+                                        if(adGuard.checkNativeFull()) {
+                                            nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                                AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                                AdmobNativeManager.getAndPop(
+                                                    applicationContext ?: return@launch
+                                                )?.let { nativeAd ->
+                                                    if (canShowDialog(activity, NativeFullDialog.TAG)) {
+                                                        if (isHandled.compareAndSet(false, true)) {
+                                                            val dialog =
+                                                                NativeFullDialog.newInstance(nativeAd) {
+                                                                    callback.onDismiss()
+                                                                    adState = adState.copy(
+                                                                        isNativeFullShowing = false
+                                                                    )
+                                                                }
+                                                            adState = adState.copy(
+                                                                isNativeFullShowing = true
+                                                            )
+                                                            dialog.show(
+                                                                activity.supportFragmentManager,
+                                                                NativeFullDialog.TAG
+                                                            )
+                                                        }
                                                     }
-                                                }
 
+                                                }
                                             }
                                         }
 
@@ -501,27 +504,29 @@ object Dora {
                             adState = adState.copy(
                                 isIntersShowing = true
                             )
-                            nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
-                                AdmobNativeManager.adState.first { it.isNotEmpty() }
-                                AdmobNativeManager.getAndPop(
-                                    applicationContext ?: return@launch
-                                )?.let { nativeAd ->
-                                    if (canShowDialog(activity, NativeFullDialog.TAG)) {
-                                        if (isHandled.compareAndSet(false, true)) {
-                                            val dialog = NativeFullDialog.newInstance(nativeAd) {
-                                                callback.onDismiss()
+                            if (adGuard.checkNativeFull()) {
+                                nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
+                                    AdmobNativeManager.adState.first { it.isNotEmpty() }
+                                    AdmobNativeManager.getAndPop(
+                                        applicationContext ?: return@launch
+                                    )?.let { nativeAd ->
+                                        if (canShowDialog(activity, NativeFullDialog.TAG)) {
+                                            if (isHandled.compareAndSet(false, true)) {
+                                                val dialog = NativeFullDialog.newInstance(nativeAd) {
+                                                    callback.onDismiss()
 
+                                                    adState = adState.copy(
+                                                        isNativeFullShowing = false
+                                                    )
+                                                }
                                                 adState = adState.copy(
-                                                    isNativeFullShowing = false
+                                                    isNativeFullShowing = true
+                                                )
+                                                dialog.show(
+                                                    activity.supportFragmentManager,
+                                                    NativeFullDialog.TAG
                                                 )
                                             }
-                                            adState = adState.copy(
-                                                isNativeFullShowing = true
-                                            )
-                                            dialog.show(
-                                                activity.supportFragmentManager,
-                                                NativeFullDialog.TAG
-                                            )
                                         }
                                     }
                                 }

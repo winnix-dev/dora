@@ -98,19 +98,11 @@ class MainActivity : AppCompatActivity() {
         
         Dora.setAdGuard(
             AdmobGuard.Builder()
-                .setOpenAppRule(
+                .setNativeFullRule(
                     object : AdmobRule {
                         override fun checking(): () -> Boolean {
                             return { false }
                         }
-                    }
-                )
-                .setInterstitialRule(
-                    object : AdmobRule {
-                        override fun checking(): () -> Boolean {
-                            return { false }
-                        }
-
                     }
                 )
                 .build()
@@ -134,46 +126,46 @@ class MainActivity : AppCompatActivity() {
 
         binding.apply {
             btnInters.setOnClickListener {
-                lifecycleScope.launch {
-                    val result = Dora.waitForInterstitialAdmobAndYandex(
-                        16000L
-                    )
-
-                    Log.d(TAG, "onCreate: $result")
-
-                    if(result) {
-                        Dora.showInterstitialInNoTime(
-                            this@MainActivity,
-                            object : ShowInterstitialCallback {
-                                override fun onDismiss() {
-                                    Log.d(TAG, "onDismiss: SHOW INTERS")
-                                }
-
-                            }
-                        )
-                    } else {
-                        Log.d(TAG, "onCreate: SHow FAILD")
-                    }
-                }
+//                lifecycleScope.launch {
+//                    val result = Dora.waitForInterstitialAdmobAndYandex(
+//                        16000L
+//                    )
+//
+//                    Log.d(TAG, "onCreate: $result")
+//
+//                    if(result) {
+//                        Dora.showInterstitialInNoTime(
+//                            this@MainActivity,
+//                            object : ShowInterstitialCallback {
+//                                override fun onDismiss() {
+//                                    Log.d(TAG, "onDismiss: SHOW INTERS")
+//                                }
+//
+//                            }
+//                        )
+//                    } else {
+//                        Log.d(TAG, "onCreate: SHow FAILD")
+//                    }
+//                }
 
                 
-//                Dora.showInterstitial(
-//                    activity = this@MainActivity,
-//                    timeout = null,
-//                    callback = object : ShowInterstitialCallback {
-//                        override fun onDismiss() {
-//                            Log.d(TAG, "On Inters Dismiss")
-//                        }
-//
-//                        override fun onShowFailed() {
-//                            Log.d(TAG, "On Inters Show Failed")
-//                        }
-//
-//                        override fun onShow() {
-//                            Log.d(TAG, "On Inters Show")
-//                        }
-//                    }
-//                )
+                Dora.showInterstitial(
+                    activity = this@MainActivity,
+                    timeout = null,
+                    callback = object : ShowInterstitialCallback {
+                        override fun onDismiss() {
+                            Log.d(TAG, "On Inters Dismiss")
+                        }
+
+                        override fun onShowFailed() {
+                            Log.d(TAG, "On Inters Show Failed")
+                        }
+
+                        override fun onShow() {
+                            Log.d(TAG, "On Inters Show")
+                        }
+                    }
+                )
             }
 
             btnNative.setOnClickListener {
