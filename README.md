@@ -3,7 +3,7 @@
 ## Installation
 ```gradle
 // Nhớ đổi sang bản mới nhất ở phần release
-implementation 'com.github.winnix-dev:Dora:1.0.0'
+implementation 'com.github.winnix-dev:dora:1.0.0'
 ```
 ### Requirements
 Lưu ý, cần phải update các SDK đã cũ thì mới dùng được
@@ -141,6 +141,35 @@ override fun onStop() {
 showInters {
     // Hành động sau khi đóng ad
 }
+
+// Trong Splash
+lifecycleScope.launch {
+                val result = Dora.waitForInterstitialAdmobAndYandex(
+                    activity,
+                    DEFAULT_TIME_OUT
+                )
+
+                Log.d(TAG, "initAd: $result")
+
+                if(result) {
+                    lifecycleScope.launch {
+                        Dora.showInterstitialInNoTime(
+                            activity as MainActivity,
+                            object : ShowInterstitialCallback {
+                                override fun onDismiss() {
+                                    // hành động 
+                                }
+
+                                override fun onShow() {
+                                    isShowIntern = true
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    // hành động 
+                }
+            }
 ```
 ### 3. Native
 ```kotlin
