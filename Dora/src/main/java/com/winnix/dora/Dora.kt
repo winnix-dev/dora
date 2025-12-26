@@ -342,7 +342,6 @@ object Dora {
             val isHandled = AtomicBoolean(false)
 
             if (result != null) {
-
                 result.fullScreenContentCallback = object : FullScreenContentCallback() {
                     override fun onAdShowedFullScreenContent() {
                         AdmobInterstitialManager.onConsumed(activity)
@@ -421,6 +420,7 @@ object Dora {
                                         nativeAdJob?.cancel()
 
                                         callback.onShowFailed()
+
                                         adState = adState.copy(
                                             isIntersShowing = false
                                         )
@@ -459,9 +459,14 @@ object Dora {
                                         adState = adState.copy(
                                             isIntersShowing = true
                                         )
+
+                                        callback.onShow()
                                     }
                                 }
                             )
+                        }
+                        else {
+                            callback.onShowFailed()
                         }
                     }
 
@@ -504,6 +509,7 @@ object Dora {
                             adState = adState.copy(
                                 isIntersShowing = true
                             )
+                            callback.onShow()
                             if (adGuard.checkNativeFull()) {
                                 nativeAdJob = CoroutineScope(Dispatchers.Main).launch {
                                     AdmobNativeManager.adState.first { it.isNotEmpty() }
@@ -639,6 +645,7 @@ object Dora {
                                         }
 
                                         override fun onShow() {
+                                            callback.onShow()
                                             if (adGuard.checkNativeFull()) {
                                                 nativeAdJob =
                                                     CoroutineScope(Dispatchers.Main).launch {
@@ -752,6 +759,7 @@ object Dora {
                                     }
                                 }
                             }
+                            callback.onShow()
                         }
                     }
                 )
