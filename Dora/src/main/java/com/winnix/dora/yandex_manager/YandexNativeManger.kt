@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.winnix.dora.Dora
 import com.winnix.dora.R
 import com.winnix.dora.helper.AdIdProvider
 import com.winnix.dora.helper.AdProvider
@@ -89,14 +88,14 @@ internal object YandexNativeManger {
             ) as NativeAdView
 
             val binder = NativeAdViewBinder.Builder(itemView)
-                .setCallToActionView(itemView.findViewById(R.id.ad_call_to_action))
-                .setDomainView(itemView.findViewById(R.id.ad_domain))
-                .setIconView(itemView.findViewById(R.id.ad_icon))
-                .setMediaView(itemView.findViewById(R.id.ad_media))
-                .setTitleView(itemView.findViewById(R.id.ad_title))
-                .setSponsoredView(itemView.findViewById(R.id.ad_sponsored))
-                .setFeedbackView(itemView.findViewById(R.id.ad_feedback))
-                .setWarningView(itemView.findViewById(R.id.ad_warning))
+                .setCallToActionView(itemView.findViewById(R.id.yandex_ad_call_to_action))
+                .setDomainView(itemView.findViewById(R.id.yandex_ad_domain))
+                .setIconView(itemView.findViewById(R.id.yandex_ad_icon))
+                .setMediaView(itemView.findViewById(R.id.yandex_ad_media))
+                .setTitleView(itemView.findViewById(R.id.yandex_ad_title))
+                .setSponsoredView(itemView.findViewById(R.id.yandex_ad_sponsored))
+                .setFeedbackView(itemView.findViewById(R.id.yandex_ad_feedback))
+                .setWarningView(itemView.findViewById(R.id.yandex_ad_warning))
                 .build()
 
             try {

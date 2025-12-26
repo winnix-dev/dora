@@ -3,32 +3,33 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/native_ad_view"
+    android:id="@+id/yandex_native_ad_view"
     android:layout_width="match_parent"
     android:layout_height="250dp">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFFFF">
+        app:cardElevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <com.yandex.mobile.ads.nativeads.MediaView
-                android:id="@+id/ad_media"
+                android:id="@+id/yandex_ad_media"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toTopOf="@+id/bottom_container"
+                android:saveEnabled="false"
+                app:layout_constraintBottom_toTopOf="@+id/yandex_bottom_container"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
-                android:id="@+id/ad_feedback"
+                android:id="@+id/yandex_ad_feedback"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginTop="8dp"
@@ -38,20 +39,20 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/ad_warning"
+                android:id="@+id/yandex_ad_warning"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:textColor="#FFFFFF"
-                android:textSize="8sp"
                 android:shadowColor="#000000"
                 android:shadowRadius="2"
-                tools:text="0+"
-                app:layout_constraintBottom_toTopOf="@+id/bottom_container"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textColor="#FFFFFF"
+                android:textSize="8sp"
+                app:layout_constraintBottom_toTopOf="@+id/yandex_bottom_container"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:text="0+" />
 
             <TextView
-                android:id="@+id/ad_sponsored"
+                android:id="@+id/yandex_ad_sponsored"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="#99000000"
@@ -64,15 +65,15 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/bottom_container"
+                android:id="@+id/yandex_bottom_container"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
-                android:padding="2dp"
                 android:background="#FFFFFF"
+                android:padding="2dp"
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <ImageView
-                    android:id="@+id/ad_icon"
+                    android:id="@+id/yandex_ad_icon"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="#EEE"
@@ -81,45 +82,45 @@
                     tools:src="@android:drawable/ic_menu_gallery" />
 
                 <TextView
-                    android:id="@+id/ad_title"
+                    android:id="@+id/yandex_ad_title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textStyle="bold"
                     android:textColor="#000"
                     android:textSize="14sp"
-                    tools:text="App Title Here"
-                    app:layout_constraintEnd_toStartOf="@+id/ad_call_to_action"
-                    app:layout_constraintStart_toEndOf="@+id/ad_icon"
-                    app:layout_constraintTop_toTopOf="@+id/ad_icon" />
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@+id/yandex_ad_call_to_action"
+                    app:layout_constraintStart_toEndOf="@+id/yandex_ad_icon"
+                    app:layout_constraintTop_toTopOf="@+id/yandex_ad_icon"
+                    tools:text="App Title Here" />
 
                 <TextView
-                    android:id="@+id/ad_domain"
+                    android:id="@+id/yandex_ad_domain"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="#888"
                     android:textSize="12sp"
-                    tools:text="sponsored.com"
-                    app:layout_constraintEnd_toEndOf="@+id/ad_title"
-                    app:layout_constraintStart_toStartOf="@+id/ad_title"
-                    app:layout_constraintTop_toBottomOf="@+id/ad_title" />
+                    app:layout_constraintEnd_toEndOf="@+id/yandex_ad_title"
+                    app:layout_constraintStart_toStartOf="@+id/yandex_ad_title"
+                    app:layout_constraintTop_toBottomOf="@+id/yandex_ad_title"
+                    tools:text="sponsored.com" />
 
                 <Button
-                    android:id="@+id/ad_call_to_action"
+                    android:id="@+id/yandex_ad_call_to_action"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:backgroundTint="#2196F3"
+                    android:saveEnabled="false"
                     android:text="Install"
                     android:textColor="#FFF"
                     android:textSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/ad_title" />
-
+                    app:layout_constraintTop_toTopOf="@+id/yandex_ad_title" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
