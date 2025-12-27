@@ -78,11 +78,16 @@ internal object YandexNativeManger {
 
     fun showNativeAd(
         viewGroup: ViewGroup,
-        inflater: LayoutInflater
+        inflater: LayoutInflater,
+        yandexNativeLayout: YandexNativeLayout?
     ) {
+        val layout = when(yandexNativeLayout) {
+            YandexNativeLayout.Native50 -> R.layout.dora_yandex_native_ad_50
+            else -> R.layout.dora_yandex_native_ad_250
+        }
         _mNativeAd.value?.let { nativeAd ->
             val itemView = inflater.inflate(
-                R.layout.dora_yandex_native_ad_250,
+                layout,
                 viewGroup,
                 false
             ) as NativeAdView

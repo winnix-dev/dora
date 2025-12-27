@@ -18,6 +18,7 @@ import com.winnix.dora.model.AdUnit
 import com.winnix.dora.model.AdmobBannerSize
 import com.winnix.dora.rule.AdmobGuard
 import com.winnix.dora.rule.AdmobRule
+import com.winnix.dora.yandex_manager.YandexNativeLayout
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -174,6 +175,7 @@ class MainActivity : AppCompatActivity() {
                     lifecycleOwner = this@MainActivity,
                     viewGroup = binding.flAd,
                     layout = NativeLayout.Native50,
+                    yandexNativeLayout = YandexNativeLayout.Native50
                 )
             }
 

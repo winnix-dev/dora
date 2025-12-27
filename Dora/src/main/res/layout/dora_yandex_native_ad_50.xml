@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.yandex.mobile.ads.nativeads.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/yandex_native_ad_view"
+    android:layout_width="match_parent"
+    android:layout_height="50dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp">
+
+            <com.yandex.mobile.ads.nativeads.MediaView
+                android:id="@+id/yandex_ad_media"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/yandex_ad_icon"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:scaleType="centerCrop"
+                android:background="#F5F5F5"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@android:drawable/ic_menu_gallery" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/yandex_ad_sponsored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="#99000000"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="1dp"
+                android:text="Ad"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                app:layout_constraintStart_toEndOf="@+id/yandex_ad_icon"
+                app:layout_constraintTop_toTopOf="@+id/yandex_ad_icon" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/yandex_ad_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#212121"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@+id/yandex_ad_icon"
+                app:layout_constraintEnd_toStartOf="@+id/yandex_ad_call_to_action"
+                app:layout_constraintStart_toEndOf="@+id/yandex_ad_icon"
+                app:layout_constraintTop_toBottomOf="@+id/yandex_ad_sponsored"
+                tools:text="Native Ad Title Placeholder" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/yandex_ad_call_to_action"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="4dp"
+                android:backgroundTint="#2196F3"
+                android:minWidth="70dp"
+                android:paddingHorizontal="8dp"
+                android:text="Install"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/yandex_ad_feedback"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/yandex_ad_feedback"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:alpha="0.5"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@android:drawable/ic_menu_info_details" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/yandex_ad_warning"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/yandex_ad_domain"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</com.yandex.mobile.ads.nativeads.NativeAdView>

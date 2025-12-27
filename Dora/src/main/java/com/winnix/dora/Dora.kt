@@ -38,6 +38,7 @@ import com.winnix.dora.ui.LoadingAdDialogFragment
 import com.winnix.dora.ui.NativeFullDialog
 import com.winnix.dora.yandex_manager.YandexBannerManager
 import com.winnix.dora.yandex_manager.YandexIntersManager
+import com.winnix.dora.yandex_manager.YandexNativeLayout
 import com.winnix.dora.yandex_manager.YandexNativeManger
 import com.winnix.dora.yandex_manager.YandexOpenApp
 import kotlinx.coroutines.CompletableDeferred
@@ -821,6 +822,7 @@ object Dora {
         lifecycleOwner: LifecycleOwner,
         viewGroup: ViewGroup,
         layout: NativeLayout,
+        yandexNativeLayout: YandexNativeLayout? = null
     ) {
         if (!adGuard.checkNative()) {
             return
@@ -883,7 +885,8 @@ object Dora {
                 if (nativeYandex != null) {
                     YandexNativeManger.showNativeAd(
                         viewGroup = viewGroup,
-                        inflater = activity.layoutInflater
+                        inflater = activity.layoutInflater,
+                        yandexNativeLayout
                     )
                 }
             }
