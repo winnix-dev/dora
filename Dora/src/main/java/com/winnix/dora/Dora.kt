@@ -1004,4 +1004,8 @@ object Dora {
 
     fun getOpenAppState() = openAdManager?.showState
 
+    fun isPrivacyOptionsRequired(activity: Activity) : Boolean = UMPHelper.isPrivacyOptionsRequired(activity)
+
+    fun showPrivacyOptionsForm(activity: Activity) : Boolean = UMPHelper.showPrivacyOptionsForm(activity)
+
 }
