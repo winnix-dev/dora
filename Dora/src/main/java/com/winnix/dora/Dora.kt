@@ -182,9 +182,9 @@ object Dora {
                             }
                             state is NativeResult.Success
                         }
-
-                        callback.onShow()
                     }
+
+                    callback.onShow()
                 }
 
                 override fun onShowFailed() {
