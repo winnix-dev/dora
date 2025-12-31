@@ -3,7 +3,6 @@ package com.winnix.dora.ui
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import com.winnix.dora.R

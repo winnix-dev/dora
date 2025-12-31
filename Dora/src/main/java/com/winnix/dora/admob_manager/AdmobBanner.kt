@@ -15,7 +15,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.winnix.dora.callback.LoadBannerCallback
 import com.winnix.dora.model.AdmobBannerSize
 
-object AdmobBannerHelper {
+object AdmobBanner {
     fun loadBanner(
         id: String,
         activity: Activity,

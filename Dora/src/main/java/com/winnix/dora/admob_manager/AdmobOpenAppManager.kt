@@ -9,32 +9,29 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.winnix.dora.callback.ShowAdCallback
-import com.winnix.dora.helper.AdIdProvider
-import com.winnix.dora.helper.AdProvider
-import com.winnix.dora.model.AdUnit
-import kotlinx.coroutines.flow.update
 
 object AdmobOpenAppManager {
-    var adUnit: AdUnit? = null
 
     private var openAd: AppOpenAd? = null
     private var isLoading = false
     private var loadTime = 0L
 
+    var id: String = ""
+
     fun loadAd(
-        context: Context
+        context: Context,
     ) {
         if((System.currentTimeMillis() - loadTime) > 4 * 3600000) {
             openAd = null
         }
 
-        if (isLoading || openAd != null || adUnit == null) return
+        if (isLoading || openAd != null) return
 
         isLoading = true
 
         AppOpenAd.load(
             context.applicationContext,
-            AdIdProvider.getAdId(adUnit!!, AdProvider.AD_MOB),
+            id,
             AdRequest.Builder().build(),
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(p0: AppOpenAd) {

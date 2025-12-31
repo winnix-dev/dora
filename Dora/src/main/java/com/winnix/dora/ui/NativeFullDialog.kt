@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.fragment.app.DialogFragment
 import com.google.android.gms.ads.nativead.NativeAd
-import com.winnix.dora.databinding.DoraLayoutAdsNativeFullBinding
 import com.winnix.dora.admob_manager.NativeHelper
 import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
+import com.winnix.dora.databinding.DoraLayoutAdsNativeFullBinding
 
 class NativeFullDialog : DialogFragment() {
     companion object {

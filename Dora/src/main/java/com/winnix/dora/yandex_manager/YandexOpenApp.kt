@@ -4,9 +4,6 @@ import android.app.Activity
 import android.app.Application
 import android.util.Log
 import com.winnix.dora.callback.ShowAdCallback
-import com.winnix.dora.helper.AdIdProvider
-import com.winnix.dora.helper.AdProvider
-import com.winnix.dora.model.AdUnit
 import com.yandex.mobile.ads.appopenad.AppOpenAd
 import com.yandex.mobile.ads.appopenad.AppOpenAdEventListener
 import com.yandex.mobile.ads.appopenad.AppOpenAdLoadListener
@@ -19,13 +16,12 @@ import com.yandex.mobile.ads.common.ImpressionData
 object YandexOpenApp {
     private var openAd: AppOpenAd? = null
     private var appOpenAdLoader: AppOpenAdLoader? = null
-    private var adUnit: AdUnit? = null
 
     private var adRequestConfiguration: AdRequestConfiguration? = null
 
     private var isLoading = false
 
-    fun int(application: Application) {
+    fun int(application: Application, id: String) {
         appOpenAdLoader = AppOpenAdLoader(application)
 
         val appOpenAdLoadListener = object : AppOpenAdLoadListener {
@@ -42,17 +38,8 @@ object YandexOpenApp {
         }
 
         appOpenAdLoader?.setAdLoadListener(appOpenAdLoadListener)
-    }
 
-    fun setAdUnit(adUnit: AdUnit) {
-        this.adUnit = adUnit
-
-        adRequestConfiguration = AdRequestConfiguration.Builder(
-            AdIdProvider.getAdId(
-                adUnit,
-                AdProvider.YANDEX
-            )
-        ).build()
+        adRequestConfiguration = AdRequestConfiguration.Builder(id).build()
 
         loadAd()
     }

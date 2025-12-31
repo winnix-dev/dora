@@ -7,19 +7,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import com.winnix.adsdk.databinding.ActivityMainBinding
 import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeLayout
+import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
-import com.winnix.dora.model.AdConfig
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
 import com.winnix.dora.model.AdmobBannerSize
-import com.winnix.dora.rule.AdmobGuard
-import com.winnix.dora.rule.AdmobRule
-import com.winnix.dora.yandex_manager.YandexNativeLayout
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,31 +24,25 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val inter = AdUnit(
-        id = "",
+        id = "ca-app-pub-3940256099942544/1033173712",
         name = "",
         adType = AdType.Inters
     )
 
-    private val native1 = AdUnit(
-        id = "",
-        name = "",
-        adType = AdType.Native
-    )
-
-    private val native2 = AdUnit(
-        id = "",
-        name = "",
+    private val native = AdUnit(
+        id = "ca-app-pub-3940256099942544/2247696110",
+        name = "ca-app-pub-3940256099942544/2247696110",
         adType = AdType.Native
     )
 
     private val banner = AdUnit(
-        id = "",
+        id = "ca-app-pub-3940256099942544/9214589741",
         name = "",
         adType = AdType.Banner
     )
 
     private val openApp = AdUnit(
-        id = "",
+        id = "ca-app-pub-3940256099942544/9257395921",
         name = "",
         adType = AdType.OpenApp
     )
@@ -64,9 +53,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-        splashScreen.setKeepOnScreenCondition {
-            Dora.isInitialized
-        }
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -79,80 +65,27 @@ class MainActivity : AppCompatActivity() {
 
         Dora.initialize(
             this,
-            adConfig = AdConfig(
-                isDebug = BuildConfig.DEBUG
-            )
-        )
-
-        Dora.setUpAdmob(
-            intersList = listOf(inter, inter, inter),
-            nativeList = listOf(native1, native2),
-            openAppId = openApp,
         )
 
         Dora.setUpYandex(
-            intersUnit = inter,
-            nativeUnit = native1,
-            bannerUnit = banner,
-            openAppId =  openApp
-        )
-        
-        Dora.setAdGuard(
-            AdmobGuard.Builder()
-                .setNativeFullRule(
-                    object : AdmobRule {
-                        override fun checking(): () -> Boolean {
-                            return { false }
-                        }
-                    }
-                )
-                .build()
+            intersUnit = inter.id,
+            nativeUnit = native.id,
+            bannerUnit = banner.id,
         )
 
-//        Dora.setNativeAds(
-//            listAds = listOf(native1, native2),
-//            maxAdCache = 2,
-//            intervalTime= 3000L,
-//        )
-//
-//        Dora.setUpInterstitial(
-//            adsList = listOf(
-//                inter,
-//                inter,
-//                inter,
-//            )
-//        )
+        Dora.loadInterstitial(
+            this,
+            inter.id,
+            object : LoadInterstitialCallback {
 
-        Dora.loadNative()
+            }
+        )
 
         binding.apply {
             btnInters.setOnClickListener {
-//                lifecycleScope.launch {
-//                    val result = Dora.waitForInterstitialAdmobAndYandex(
-//                        16000L
-//                    )
-//
-//                    Log.d(TAG, "onCreate: $result")
-//
-//                    if(result) {
-//                        Dora.showInterstitialInNoTime(
-//                            this@MainActivity,
-//                            object : ShowInterstitialCallback {
-//                                override fun onDismiss() {
-//                                    Log.d(TAG, "onDismiss: SHOW INTERS")
-//                                }
-//
-//                            }
-//                        )
-//                    } else {
-//                        Log.d(TAG, "onCreate: SHow FAILD")
-//                    }
-//                }
-
                 
                 Dora.showInterstitial(
                     activity = this@MainActivity,
-                    timeout = null,
                     callback = object : ShowInterstitialCallback {
                         override fun onDismiss() {
                             Log.d(TAG, "On Inters Dismiss")
@@ -175,7 +108,7 @@ class MainActivity : AppCompatActivity() {
                     lifecycleOwner = this@MainActivity,
                     viewGroup = binding.flAd,
                     layout = NativeLayout.Native50,
-                    yandexNativeLayout = YandexNativeLayout.Native50
+                    id = native.id
                 )
             }
 
@@ -185,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                     container = binding.flAd,
                     adSize = AdmobBannerSize.Adaptive,
                     lifecycleOwner = this@MainActivity,
-                    adUnitId = banner
+                    adUnitId = banner.id
                 )
             }
 
@@ -198,11 +131,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-//            btnNativeFull.setOnClickListener {
-//                Dora.showNativeFull(this@MainActivity) {
-//
-//                }
-//            }
         }
     }
 }

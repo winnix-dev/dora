@@ -1,4 +1,4 @@
-package com.winnix.dora.helper
+package com.winnix.dora.manager
 
 import android.app.Activity
 import android.app.Application
@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class OpenAdManager(
+    val id: String,
+    val yandexId: String? = null,
     val application: Application,
     val callback: OpenAdCallback
 ) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
@@ -28,7 +30,10 @@ class OpenAdManager(
         application.registerActivityLifecycleCallbacks(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
-        YandexOpenApp.int(application)
+        yandexId?.let {
+            YandexOpenApp.int(application, it)
+        }
+        AdmobOpenAppManager.id = id
 
         loadAd()
     }
@@ -37,6 +42,7 @@ class OpenAdManager(
         if(! callback.canLoad()() ) {
             return
         }
+
         AdmobOpenAppManager.loadAd(application)
         YandexOpenApp.loadAd()
     }

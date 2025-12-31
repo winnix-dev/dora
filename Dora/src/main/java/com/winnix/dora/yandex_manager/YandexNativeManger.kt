@@ -6,9 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.winnix.dora.R
-import com.winnix.dora.helper.AdIdProvider
-import com.winnix.dora.helper.AdProvider
-import com.winnix.dora.model.AdUnit
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.nativeads.NativeAd
 import com.yandex.mobile.ads.nativeads.NativeAdLoadListener
@@ -16,37 +13,24 @@ import com.yandex.mobile.ads.nativeads.NativeAdLoader
 import com.yandex.mobile.ads.nativeads.NativeAdRequestConfiguration
 import com.yandex.mobile.ads.nativeads.NativeAdView
 import com.yandex.mobile.ads.nativeads.NativeAdViewBinder
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 internal object YandexNativeManger {
-    private var isWaiting = false
-    private var adUnit: AdUnit? = null
     private val _mNativeAd = MutableStateFlow<NativeAd?>(null)
-    val nativeAd = _mNativeAd.asStateFlow()
     private var isNativeLoading = false
-
-    fun setUp(adUnit: AdUnit, context: Context) {
-        this.adUnit = adUnit
-        loadNativeAd(context)
-    }
 
     fun loadNativeAd(
         context: Context,
+        id: String
     ) {
-        if (_mNativeAd.value != null || isNativeLoading || adUnit == null || isWaiting) {
+        if (_mNativeAd.value != null || isNativeLoading ) {
             return
         }
 
         val loader = NativeAdLoader(context.applicationContext)
 
-        val config =
-            NativeAdRequestConfiguration.Builder(AdIdProvider.getAdId(adUnit!!, AdProvider.YANDEX))
+        val config = NativeAdRequestConfiguration.Builder(id)
                 .build()
 
         loader.setNativeAdLoadListener(object : NativeAdLoadListener {
@@ -59,17 +43,6 @@ internal object YandexNativeManger {
                 Log.e("Dora", "Load Yandex Native Failed: ${error.description}")
                 _mNativeAd.update { null }
                 isNativeLoading = false
-
-                isWaiting = true
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    if(error.code == 0) {
-                        delay(10_000L)
-                    }
-                    delay(6500)
-                    isWaiting = false
-                    loadNativeAd(context)
-                }
             }
         })
         isNativeLoading = true
@@ -112,8 +85,6 @@ internal object YandexNativeManger {
 
                 _mNativeAd.update { null }
                 isNativeLoading = false
-
-                loadNativeAd(viewGroup.context)
 
             } catch (e: Exception) {
                 Log.e("Dora", "Failed to bind fixed size native ad $e")

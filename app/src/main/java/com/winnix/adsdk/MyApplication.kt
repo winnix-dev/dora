@@ -7,6 +7,9 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Dora.registerOpenAd(this)
+        Dora.registerOpenAd(
+            this,
+            "ca-app-pub-3940256099942544/9257395921"
+        )
     }
 }
