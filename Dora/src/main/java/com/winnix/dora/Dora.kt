@@ -98,6 +98,7 @@ object Dora {
     fun loadInterstitial(
         context: Context?,
         id: String,
+        nativeFullId: String,
         listener: LoadInterstitialCallback
     ) {
         if (context == null) return
@@ -114,7 +115,7 @@ object Dora {
 
             AdmobNative.loadAd(
                 context = context,
-                id = id,
+                id = nativeFullId,
                 nativeType = NativeType.NATIVE_FULL
             )
         }
