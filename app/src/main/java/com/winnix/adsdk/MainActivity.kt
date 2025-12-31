@@ -76,6 +76,7 @@ class MainActivity : AppCompatActivity() {
         Dora.loadInterstitial(
             this,
             inter.id,
+            native.id,
             object : LoadInterstitialCallback {
 
             }
