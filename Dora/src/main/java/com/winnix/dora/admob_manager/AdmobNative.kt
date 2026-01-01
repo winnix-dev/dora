@@ -97,6 +97,10 @@ internal object AdmobNative {
         }
     }
 
+    fun clearAd(adType: NativeType) {
+        updateAd(adType, NativeResult.Idle)
+    }
+
     private fun updateAd(nativeType: NativeType, state: NativeResult) {
         _nativeState.update {
             val map = _nativeState.value.toMutableMap()

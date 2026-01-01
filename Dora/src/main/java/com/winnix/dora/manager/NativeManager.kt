@@ -55,6 +55,7 @@ internal object NativeManager {
                             layoutAd = layoutAd.getLayoutAd(),
                             viewGroup = viewGroup
                         )
+                        AdmobNative.clearAd(NativeType.NATIVE)
                     }
                     is NativeResult.Failed -> {
                         YandexNativeManger.showNativeAd(
@@ -72,6 +73,10 @@ internal object NativeManager {
                 }
             }
         }
+    }
+
+    fun clearNative(nativeType: NativeType) {
+        AdmobNative.clearAd(nativeType)
     }
 
     fun getAdFullState() = AdmobNative.getAdState(NativeType.NATIVE_FULL)

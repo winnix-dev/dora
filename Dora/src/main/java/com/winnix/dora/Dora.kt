@@ -177,6 +177,8 @@ object Dora {
                                             activity.supportFragmentManager,
                                             NativeFullDialog.TAG
                                         )
+
+                                        NativeManager.clearNative(NativeType.NATIVE_FULL)
                                     }
                                 }
                             }

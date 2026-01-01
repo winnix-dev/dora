@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.winnix.adsdk.databinding.ActivityMainBinding
@@ -48,11 +47,9 @@ class MainActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -73,18 +70,19 @@ class MainActivity : AppCompatActivity() {
             bannerUnit = banner.id,
         )
 
-        Dora.loadInterstitial(
-            this,
-            inter.id,
-            native.id,
-            object : LoadInterstitialCallback {
 
-            }
-        )
 
         binding.apply {
             btnInters.setOnClickListener {
-                
+                Dora.loadInterstitial(
+                    this@MainActivity,
+                    inter.id,
+                    native.id,
+                    object : LoadInterstitialCallback {
+
+                    }
+                )
+
                 Dora.showInterstitial(
                     activity = this@MainActivity,
                     callback = object : ShowInterstitialCallback {
