@@ -47,6 +47,11 @@ object Dora {
     private var adState = AdState()
     private var yandexAd = YandexAd()
 
+    private var lastInterstitialId: String? = null
+    private var lastNativeFullId: String? = null
+    private var lastInterstitialCallback: LoadInterstitialCallback? = null
+
+
     // General
     fun initialize(
         activity: Activity,
@@ -103,6 +108,9 @@ object Dora {
     ) {
         if (context == null) return
 
+        lastInterstitialId = id
+        lastInterstitialCallback = listener
+
         CoroutineScope(Dispatchers.Main).launch {
             ensureInitialized()
 
@@ -113,6 +121,7 @@ object Dora {
                 listener
             )
             nativeFullId?.let {
+                lastNativeFullId = it
                 AdmobNative.loadAd(
                     context = context,
                     id = nativeFullId,
@@ -134,6 +143,15 @@ object Dora {
         }
 
         if (!InterstitialManager.isAdmobAlready()) {
+            lastInterstitialId?.let {
+                loadInterstitial(
+                    context = activity,
+                    id = it,
+                    nativeFullId = lastNativeFullId,
+                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback{ }
+                )
+            }
+
             showLoadingDialog(activity)
         }
 

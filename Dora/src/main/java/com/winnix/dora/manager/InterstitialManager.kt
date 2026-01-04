@@ -41,7 +41,7 @@ internal object InterstitialManager {
     ) {
         activity.lifecycleScope.launch(Dispatchers.Main) {
             withTimeoutOrNull(timeoutLong) {
-                AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success }
+                AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success || it is InterstitialResult.Failed }
             }
             AdmobInterstitial.showAd(
                 activity,
