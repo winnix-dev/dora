@@ -8,7 +8,11 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.winnix.dora.Dora.ensureInitialized
 import com.winnix.dora.callback.ShowAdCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object AdmobOpenAppManager {
 
@@ -29,23 +33,27 @@ object AdmobOpenAppManager {
 
         isLoading = true
 
-        AppOpenAd.load(
-            context.applicationContext,
-            id,
-            AdRequest.Builder().build(),
-            object : AppOpenAd.AppOpenAdLoadCallback() {
-                override fun onAdLoaded(p0: AppOpenAd) {
-                    isLoading = false
-                    openAd = p0
-                    loadTime = System.currentTimeMillis()
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            ensureInitialized()
 
-                override fun onAdFailedToLoad(p0: LoadAdError) {
-                    Log.e("Dora", "admob OpenApp failed: $p0")
-                    isLoading = false
+            AppOpenAd.load(
+                context.applicationContext,
+                id,
+                AdRequest.Builder().build(),
+                object : AppOpenAd.AppOpenAdLoadCallback() {
+                    override fun onAdLoaded(p0: AppOpenAd) {
+                        isLoading = false
+                        openAd = p0
+                        loadTime = System.currentTimeMillis()
+                    }
+
+                    override fun onAdFailedToLoad(p0: LoadAdError) {
+                        Log.e("Dora", "admob OpenApp failed: $p0")
+                        isLoading = false
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     fun isAvailable(): Boolean {

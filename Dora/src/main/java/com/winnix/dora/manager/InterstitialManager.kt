@@ -3,6 +3,7 @@ package com.winnix.dora.manager
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.AdmobInterstitial
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
@@ -40,52 +41,79 @@ internal object InterstitialManager {
         callback: ShowInterstitialCallback
     ) {
         activity.lifecycleScope.launch(Dispatchers.Main) {
-            withTimeoutOrNull(timeoutLong) {
-                AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success || it is InterstitialResult.Failed }
-            }
-            AdmobInterstitial.showAd(
-                activity,
-                listener = object : ShowInterstitialCallback {
-                    override fun onDismiss() {
-                        callback.onDismiss()
-                    }
-
-                    override fun onImpression() {
-                        callback.onImpression()
-                    }
-
-                    override fun onShow() {
-                        callback.onShow()
-                    }
-
-                    override fun onShowFailed() {
-                        YandexInterstitial.showAd(
-                            activity = activity,
-                            listener = object : ShowInterstitialCallback {
-                                override fun onDismiss() {
-                                    callback.onDismiss()
-                                }
-
-                                override fun onShow() {
-                                    callback.onShow()
-                                }
-
-                                override fun onImpression() {
-                                    callback.onImpression()
-                                }
-
-                                override fun onShowFailed() {
-                                    callback.onShowFailed()
-                                    callback.onDismiss()
-                                }
-                            }
-                        )
-                    }
+            if (Dora.canRequestAdmob(activity)) {
+                withTimeoutOrNull(timeoutLong) {
+                    AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success || it is InterstitialResult.Failed }
                 }
-            )
+                AdmobInterstitial.showAd(
+                    activity,
+                    listener = object : ShowInterstitialCallback {
+                        override fun onDismiss() {
+                            callback.onDismiss()
+                        }
+
+                        override fun onImpression() {
+                            callback.onImpression()
+                        }
+
+                        override fun onShow() {
+                            callback.onShow()
+                        }
+
+                        override fun onShowFailed() {
+                            YandexInterstitial.showAd(
+                                activity = activity,
+                                listener = object : ShowInterstitialCallback {
+                                    override fun onDismiss() {
+                                        callback.onDismiss()
+                                    }
+
+                                    override fun onShow() {
+                                        callback.onShow()
+                                    }
+
+                                    override fun onImpression() {
+                                        callback.onImpression()
+                                    }
+
+                                    override fun onShowFailed() {
+                                        callback.onShowFailed()
+                                        callback.onDismiss()
+                                    }
+                                }
+                            )
+                        }
+                    }
+                )
+            } else {
+                withTimeoutOrNull(timeoutLong) {
+                    YandexInterstitial.interstitialAd.first { it is YandexInterstitialResult.Success || it is YandexInterstitialResult.Failed }
+                }
+                YandexInterstitial.showAd(
+                    activity = activity,
+                    listener = object : ShowInterstitialCallback {
+                        override fun onDismiss() {
+                            callback.onDismiss()
+                        }
+
+                        override fun onShow() {
+                            callback.onShow()
+                        }
+
+                        override fun onImpression() {
+                            callback.onImpression()
+                        }
+
+                        override fun onShowFailed() {
+                            callback.onShowFailed()
+                            callback.onDismiss()
+                        }
+                    }
+                )
+            }
+
         }
     }
-
     suspend fun waitForInterstitialWithTimeout(timeoutLong: Long) : Boolean {
         val admobResult = withTimeoutOrNull(timeoutLong) {
             AdmobInterstitial.interstitialAd.first {
@@ -102,6 +130,5 @@ internal object InterstitialManager {
 
         return admobResult == true
     }
-
     fun isAdmobAlready() : Boolean = AdmobInterstitial.interstitialAd.value is InterstitialResult.Success
 }

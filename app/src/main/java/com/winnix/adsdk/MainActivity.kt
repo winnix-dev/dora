@@ -46,6 +46,22 @@ class MainActivity : AppCompatActivity() {
         adType = AdType.OpenApp
     )
 
+    private val interYandex = AdUnit(
+        id = "demo-interstitial-yandex",
+        name = "",
+        adType = AdType.Inters
+    )
+    private val nativeYandex = AdUnit(
+        id = "demo-native-yandex",
+        name = "ca-app-pub-3940256099942544/2247696110",
+        adType = AdType.Native
+    )
+    private val bannerYandex = AdUnit(
+        id = "demo-banner-yandex",
+        name = "",
+        adType = AdType.Banner
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -60,17 +76,15 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        Dora.initialize(
+        Dora.initializeAdmob(
             this,
         )
 
         Dora.setUpYandex(
-            intersUnit = inter.id,
-            nativeUnit = native.id,
-            bannerUnit = banner.id,
+            intersUnit = interYandex.id,
+            nativeUnit = nativeYandex.id,
+            bannerUnit = bannerYandex.id,
         )
-
-
 
         binding.apply {
             btnInters.setOnClickListener {

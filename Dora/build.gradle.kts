@@ -46,7 +46,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "com.github.winnix-dev"
             artifactId = "dora"
-            version = "1.3.5"
+            version = "1.3.6"
 
             afterEvaluate {
                 from(components["release"])
@@ -65,5 +65,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     api(libs.play.services.ads)
-    implementation("com.yandex.android:mobileads:7.18.1")
+    implementation(libs.mobileads)
+    implementation(libs.user.messaging.platform)
 }

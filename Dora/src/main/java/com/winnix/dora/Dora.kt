@@ -46,15 +46,15 @@ object Dora {
     private var openAdManager: OpenAdManager? = null
     private var adState = AdState()
     private var yandexAd = YandexAd()
-
     private var lastInterstitialId: String? = null
     private var lastNativeFullId: String? = null
     private var lastInterstitialCallback: LoadInterstitialCallback? = null
 
 
     // General
-    fun initialize(
+    fun initializeAdmob(
         activity: Activity,
+        debugId: String? = null
     ) {
         Log.d(TAG, "initAd SDK")
 
@@ -64,17 +64,20 @@ object Dora {
 
         activity.window.decorView.post {
             UMPHelper.fetchConsent(
-                activity
+                activity,
+                debugId
             ) { isSuccess ->
                 val context = activity.application
                 if (isSuccess) {
+                    Log.d(TAG, "initialize: Khởi tạo Consent thành công")
                     CoroutineScope(Dispatchers.IO).launch {
                         MobileAds.initialize(context) {
                             completeInitAd()
                         }
                     }
-                } else {
-                    completeInitAd()
+                }
+                else {
+                    Log.w(TAG, "initialize: Khởi tạo Consent thất bại")
                 }
             }
         }
@@ -85,7 +88,7 @@ object Dora {
         initBarrier.complete(Unit)
     }
 
-    private suspend fun ensureInitialized() {
+    internal suspend fun ensureInitialized() {
         initBarrier.await()
     }
 
@@ -111,23 +114,19 @@ object Dora {
         lastInterstitialId = id
         lastInterstitialCallback = listener
 
-        CoroutineScope(Dispatchers.Main).launch {
-            ensureInitialized()
-
-            InterstitialManager.loadInter(
+        InterstitialManager.loadInter(
+            context = context,
+            id = id,
+            yandexId = yandexAd.intersUnit,
+            listener
+        )
+        nativeFullId?.let {
+            lastNativeFullId = it
+            AdmobNative.loadAd(
                 context = context,
-                id = id,
-                yandexId = yandexAd.intersUnit,
-                listener
+                id = nativeFullId,
+                nativeType = NativeType.NATIVE_FULL
             )
-            nativeFullId?.let {
-                lastNativeFullId = it
-                AdmobNative.loadAd(
-                    context = context,
-                    id = nativeFullId,
-                    nativeType = NativeType.NATIVE_FULL
-                )
-            }
         }
 
     }
@@ -275,8 +274,6 @@ object Dora {
         callback: LoadNativeCallback? = null
     ) {
         lifecycleOwner.lifecycleScope.launch {
-            ensureInitialized()
-
             NativeManager.loadAndShowAd(
                 activity = activity,
                 id = id,
@@ -294,16 +291,12 @@ object Dora {
         context: Context,
         id: String
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            ensureInitialized()
-
-            NativeManager.loadAd(
-                context = context,
-                id = id,
-                nativeType = NativeType.NATIVE,
-                yandexId = yandexAd.nativeUnit
-            )
-        }
+        NativeManager.loadAd(
+            context = context,
+            id = id,
+            nativeType = NativeType.NATIVE,
+            yandexId = yandexAd.nativeUnit
+        )
     }
 
     // Banner
@@ -315,18 +308,14 @@ object Dora {
         lifecycleOwner: LifecycleOwner,
         adUnitId: String
     ) {
-        lifecycleOwner.lifecycleScope.launch {
-            ensureInitialized()
-
-            BannerManager.loadBanner(
-                activity = activity,
-                container = container,
-                adSize = adSize,
-                lifecycleOwner = lifecycleOwner,
-                admobId = adUnitId,
-                yandexId = yandexAd.bannerUnit
-            )
-        }
+        BannerManager.loadBanner(
+            activity = activity,
+            container = container,
+            adSize = adSize,
+            lifecycleOwner = lifecycleOwner,
+            admobId = adUnitId,
+            yandexId = yandexAd.bannerUnit
+        )
     }
 
     //OpenAd
@@ -335,39 +324,35 @@ object Dora {
         id: String,
         yandexId: String? = null,
     ) {
-        CoroutineScope(Dispatchers.Main).launch {
-            ensureInitialized()
-
-            openAdManager = OpenAdManager(
-                id = id,
-                application = application,
-                yandexId = yandexId,
-                callback = object : OpenAdCallback {
-                    override fun canShow(): () -> Boolean {
-                        return {
-                            !adState.isShowingAdFullscreen
-                        }
+        openAdManager = OpenAdManager(
+            id = id,
+            application = application,
+            yandexId = yandexId,
+            callback = object : OpenAdCallback {
+                override fun canShow(): () -> Boolean {
+                    return {
+                        !adState.isShowingAdFullscreen
                     }
-
-                    override fun onShowAd() {
-                        adState = adState.copy(
-                            isOpenAppShowing = true
-                        )
-                    }
-
-                    override fun onDismiss() {
-                        adState = adState.copy(
-                            isOpenAppShowing = false
-                        )
-                    }
-
-                    override fun canLoad(): () -> Boolean {
-                        return { true }
-                    }
-
                 }
-            )
-        }
+
+                override fun onShowAd() {
+                    adState = adState.copy(
+                        isOpenAppShowing = true
+                    )
+                }
+
+                override fun onDismiss() {
+                    adState = adState.copy(
+                        isOpenAppShowing = false
+                    )
+                }
+
+                override fun canLoad(): () -> Boolean {
+                    return { true }
+                }
+
+            }
+        )
     }
 
     fun showOpenAd(
@@ -400,6 +385,8 @@ object Dora {
     fun isPrivacyOptionsRequired(activity: Activity): Boolean =
         UMPHelper.isPrivacyOptionsRequired(activity)
 
-    fun showPrivacyOptionsForm(activity: Activity): Boolean =
-        UMPHelper.showPrivacyOptionsForm(activity)
+    fun showPrivacyOptionsForm(activity: Activity, onReturn: (Boolean) -> Unit) =
+        UMPHelper.showPrivacyOptionsForm(activity, onReturn)
+
+    fun canRequestAdmob(activity: Activity) = UMPHelper.canRequestAds(activity)
 }

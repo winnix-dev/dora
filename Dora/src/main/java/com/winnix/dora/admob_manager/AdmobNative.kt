@@ -13,6 +13,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.VideoOptions
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
 import com.winnix.dora.model.NativeResult
 import com.winnix.dora.model.NativeType
@@ -45,6 +46,8 @@ internal object AdmobNative {
         updateAd(nativeType, NativeResult.Loading)
 
         CoroutineScope(Dispatchers.IO).launch {
+            Dora.ensureInitialized()
+
             val adLoader = AdLoader.Builder(context.applicationContext, id)
                 .forNativeAd { ad ->
                     updateAd(nativeType, NativeResult.Success(ad))

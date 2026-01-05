@@ -9,7 +9,8 @@ class MyApplication : Application() {
 
         Dora.registerOpenAd(
             this,
-            "ca-app-pub-3940256099942544/9257395921"
+            "ca-app-pub-3940256099942544/9257395921",
+            "demo-appopenad-yandex"
         )
     }
 }

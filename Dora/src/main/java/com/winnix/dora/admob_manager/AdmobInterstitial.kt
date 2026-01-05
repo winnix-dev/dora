@@ -9,12 +9,16 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
 import com.winnix.dora.model.InterstitialResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 internal object AdmobInterstitial {
     private val _interstitialAd = MutableStateFlow<InterstitialResult>(InterstitialResult.Idle)
@@ -28,28 +32,33 @@ internal object AdmobInterstitial {
         val state = _interstitialAd.value
 
         if (state is InterstitialResult.Success || state is InterstitialResult.Loading) return
+        _interstitialAd.update { InterstitialResult.Loading }
 
-        val adRequest = AdRequest.Builder().build()
-        listener?.onBeginLoad()
-        InterstitialAd.load(
-            context.applicationContext,
-            id,
-            adRequest,
-            object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(p0: InterstitialAd) {
+        CoroutineScope(Dispatchers.Main).launch {
+            Dora.ensureInitialized()
 
-                    _interstitialAd.update { InterstitialResult.Success(p0) }
+            val adRequest = AdRequest.Builder().build()
+            listener?.onBeginLoad()
+            InterstitialAd.load(
+                context.applicationContext,
+                id,
+                adRequest,
+                object : InterstitialAdLoadCallback() {
+                    override fun onAdLoaded(p0: InterstitialAd) {
 
-                    listener?.onLoaded()
-                }
+                        _interstitialAd.update { InterstitialResult.Success(p0) }
 
-                override fun onAdFailedToLoad(p0: LoadAdError) {
-                    _interstitialAd.update { InterstitialResult.Failed }
+                        listener?.onLoaded()
+                    }
 
-                    listener?.onFailed()
-                }
+                    override fun onAdFailedToLoad(p0: LoadAdError) {
+                        _interstitialAd.update { InterstitialResult.Failed }
 
-            })
+                        listener?.onFailed()
+                    }
+
+                })
+        }
     }
 
     fun showAd(
