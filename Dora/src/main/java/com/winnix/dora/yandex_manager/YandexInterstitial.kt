@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.YandexInterstitialResult
 import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
@@ -32,21 +33,25 @@ internal object YandexInterstitial {
             return
         }
 
-        listener?.onBeginLoad()
+        listener?.onBeginLoad(adProvider = AdProvider.YANDEX,)
 
         val interstitialAdLoader = InterstitialAdLoader(context.applicationContext).apply {
             setAdLoadListener(object : InterstitialAdLoadListener {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                     _interstitialAd.update { YandexInterstitialResult.Success(interstitialAd) }
 
-                    listener?.onLoaded()
+                    listener?.onLoaded(adProvider = AdProvider.YANDEX,)
                 }
 
                 override fun onAdFailedToLoad(error: AdRequestError) {
                     Log.e("Dora", "Load Inters Yandex Failed $error")
                     _interstitialAd.update { YandexInterstitialResult.Failed }
 
-                    listener?.onFailed()
+                    listener?.onFailed(
+                        adProvider = AdProvider.YANDEX,
+                        errorCode = error.code,
+                        errorMessage = error.description
+                    )
                 }
             })
         }

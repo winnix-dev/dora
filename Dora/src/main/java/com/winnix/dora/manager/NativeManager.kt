@@ -21,15 +21,17 @@ internal object NativeManager {
         context: Context,
         id: String,
         yandexId: String?,
-        nativeType: NativeType
+        nativeType: NativeType,
+        callback: LoadNativeCallback?
     ){
         AdmobNative.loadAd(
             context = context,
             id = id,
-            nativeType = nativeType
+            nativeType = nativeType,
+            callback = callback
         )
         yandexId?.let {
-            YandexNativeManger.loadNativeAd(context, it)
+            YandexNativeManger.loadNativeAd(context, it, callback)
         }
     }
 
@@ -43,7 +45,13 @@ internal object NativeManager {
         viewGroup: ViewGroup,
         callback: LoadNativeCallback? = null
     ) {
-        loadAd(activity, id, yandexId, nativeType)
+        loadAd(
+            activity,
+            id,
+            yandexId,
+            nativeType,
+            callback
+        )
         if (Dora.canRequestAdmob(activity)) {
             lifecycleOwner.lifecycleScope.launch {
                 AdmobNative.getAdState(nativeType).collectLatest { result ->

@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.winnix.dora.callback.LoadBannerCallback
+import com.winnix.dora.helper.AdProvider
 import com.yandex.mobile.ads.banner.BannerAdEventListener
 import com.yandex.mobile.ads.banner.BannerAdSize
 import com.yandex.mobile.ads.banner.BannerAdView
@@ -18,7 +19,7 @@ object YandexBannerManager {
         container: ViewGroup,
         id: String,
         lifecycleOwner: LifecycleOwner,
-        callback: LoadBannerCallback
+        callback: LoadBannerCallback?
     ) {
 
         val banner = BannerAdView(activity)
@@ -36,11 +37,17 @@ object YandexBannerManager {
                 }
 
                 override fun onAdFailedToLoad(error: AdRequestError) {
-                    callback.onLoadFailed()
+                    callback?.onLoadFailed(
+                        AdProvider.YANDEX,
+                        errorMessage = error.description,
+                        errorCode = error.code
+                    )
                 }
 
                 override fun onAdLoaded() {
-                    callback.onLoadSuccess()
+                    callback?.onLoadSuccess(
+                        adProvider = AdProvider.YANDEX
+                    )
                     if(activity.isDestroyed) {
                         banner.destroy()
                         return
@@ -63,6 +70,7 @@ object YandexBannerManager {
                 override fun onReturnedToApplication() {}
 
             })
+            callback?.onLoad(AdProvider.YANDEX)
             loadAd(AdRequest.Builder().build())
         }
     }

@@ -12,6 +12,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.InterstitialResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +39,7 @@ internal object AdmobInterstitial {
             Dora.ensureInitialized()
 
             val adRequest = AdRequest.Builder().build()
-            listener?.onBeginLoad()
+            listener?.onBeginLoad(adProvider = AdProvider.AD_MOB,)
             InterstitialAd.load(
                 context.applicationContext,
                 id,
@@ -48,13 +49,17 @@ internal object AdmobInterstitial {
 
                         _interstitialAd.update { InterstitialResult.Success(p0) }
 
-                        listener?.onLoaded()
+                        listener?.onLoaded(AdProvider.AD_MOB)
                     }
 
                     override fun onAdFailedToLoad(p0: LoadAdError) {
                         _interstitialAd.update { InterstitialResult.Failed }
 
-                        listener?.onFailed()
+                        listener?.onFailed(
+                            adProvider = AdProvider.AD_MOB,
+                            errorCode = p0.code,
+                            errorMessage = p0.message
+                        )
                     }
 
                 })

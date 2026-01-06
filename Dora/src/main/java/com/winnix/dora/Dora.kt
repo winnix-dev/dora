@@ -13,10 +13,12 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import com.winnix.dora.admob_manager.AdmobNative
 import com.winnix.dora.admob_manager.NativeLayout
+import com.winnix.dora.callback.LoadBannerCallback
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.LoadNativeCallback
 import com.winnix.dora.callback.OpenAdCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.helper.UMPHelper
 import com.winnix.dora.manager.BannerManager
 import com.winnix.dora.manager.InterstitialManager
@@ -49,6 +51,7 @@ object Dora {
     private var lastInterstitialId: String? = null
     private var lastNativeFullId: String? = null
     private var lastInterstitialCallback: LoadInterstitialCallback? = null
+    private var lastNativeFullCallback: LoadNativeCallback? = null
 
 
     // General
@@ -107,12 +110,14 @@ object Dora {
         context: Context?,
         id: String,
         nativeFullId: String?,
-        listener: LoadInterstitialCallback
+        listener: LoadInterstitialCallback,
+        nativeFullCallback: LoadNativeCallback?
     ) {
         if (context == null) return
 
         lastInterstitialId = id
         lastInterstitialCallback = listener
+        lastNativeFullCallback = nativeFullCallback
 
         InterstitialManager.loadInter(
             context = context,
@@ -125,7 +130,8 @@ object Dora {
             AdmobNative.loadAd(
                 context = context,
                 id = nativeFullId,
-                nativeType = NativeType.NATIVE_FULL
+                nativeType = NativeType.NATIVE_FULL,
+                nativeFullCallback
             )
         }
 
@@ -147,7 +153,8 @@ object Dora {
                     context = activity,
                     id = it,
                     nativeFullId = lastNativeFullId,
-                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback{ }
+                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback{ },
+                    nativeFullCallback = lastNativeFullCallback
                 )
             }
 
@@ -224,9 +231,15 @@ object Dora {
         activity?.lifecycleScope?.launch {
             val result = InterstitialManager.waitForInterstitialWithTimeout(timeout)
             if (result) {
-                callback.onLoaded()
+                callback.onLoaded(
+                    AdProvider.AD_MOB
+                )
             } else {
-                callback.onFailed()
+                callback.onFailed(
+                    adProvider = AdProvider.AD_MOB,
+                    errorCode = 1924,
+                    errorMessage = "Can't show"
+                )
             }
         }
     }
@@ -289,13 +302,15 @@ object Dora {
 
     fun loadNative(
         context: Context,
-        id: String
+        id: String,
+        callback: LoadNativeCallback?
     ) {
         NativeManager.loadAd(
             context = context,
             id = id,
             nativeType = NativeType.NATIVE,
-            yandexId = yandexAd.nativeUnit
+            yandexId = yandexAd.nativeUnit,
+            callback = callback
         )
     }
 
@@ -306,7 +321,8 @@ object Dora {
         container: ViewGroup,
         adSize: AdmobBannerSize,
         lifecycleOwner: LifecycleOwner,
-        adUnitId: String
+        adUnitId: String,
+        callback: LoadBannerCallback?
     ) {
         BannerManager.loadBanner(
             activity = activity,
@@ -314,7 +330,8 @@ object Dora {
             adSize = adSize,
             lifecycleOwner = lifecycleOwner,
             admobId = adUnitId,
-            yandexId = yandexAd.bannerUnit
+            yandexId = yandexAd.bannerUnit,
+            callback = callback
         )
     }
 

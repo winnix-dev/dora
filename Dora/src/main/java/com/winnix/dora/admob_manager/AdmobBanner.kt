@@ -15,6 +15,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadBannerCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.AdmobBannerSize
 import kotlinx.coroutines.launch
 
@@ -35,11 +36,17 @@ object AdmobBanner {
             adView.adListener = object : AdListener() {
                 override fun onAdFailedToLoad(p0: LoadAdError) {
                     Log.e("Dora", "load Banner fail: $p0")
-                    callback.onLoadFailed()
+                    callback.onLoadFailed(
+                        adProvider = AdProvider.AD_MOB,
+                        errorCode = p0.code,
+                        errorMessage = p0.message
+                    )
                 }
 
                 override fun onAdLoaded() {
-                    callback.onLoadSuccess()
+                    callback.onLoadSuccess(
+                        AdProvider.AD_MOB
+                    )
 
                     lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
                         override fun onResume(owner: LifecycleOwner) {
@@ -84,6 +91,7 @@ object AdmobBanner {
                     .build()
             }
 
+            callback.onLoad(AdProvider.AD_MOB)
             adView.loadAd(adRequest)
         }
     }

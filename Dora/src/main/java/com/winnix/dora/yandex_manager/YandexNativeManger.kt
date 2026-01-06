@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.winnix.dora.R
+import com.winnix.dora.callback.LoadNativeCallback
+import com.winnix.dora.helper.AdProvider
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.nativeads.NativeAd
 import com.yandex.mobile.ads.nativeads.NativeAdLoadListener
@@ -22,7 +24,8 @@ internal object YandexNativeManger {
 
     fun loadNativeAd(
         context: Context,
-        id: String
+        id: String,
+        callback: LoadNativeCallback?
     ) {
         if (_mNativeAd.value != null || isNativeLoading ) {
             return
@@ -37,22 +40,31 @@ internal object YandexNativeManger {
             override fun onAdLoaded(nativeAd: NativeAd) {
                 _mNativeAd.update { nativeAd }
                 isNativeLoading = false
+
+                callback?.loadSuccess(adProvider = AdProvider.YANDEX,)
             }
 
             override fun onAdFailedToLoad(error: AdRequestError) {
                 Log.e("Dora", "Load Yandex Native Failed: ${error.description}")
                 _mNativeAd.update { null }
                 isNativeLoading = false
+
+                callback?.loadFailed(
+                    errorCode = error.code,
+                    errorMessage = error.description,
+                    adProvider = AdProvider.YANDEX,
+                )
             }
         })
         isNativeLoading = true
+        callback?.onLoad(AdProvider.YANDEX)
         loader.loadAd(config)
     }
 
     fun showNativeAd(
         viewGroup: ViewGroup,
         inflater: LayoutInflater,
-        yandexNativeLayout: YandexNativeLayout?
+        yandexNativeLayout: YandexNativeLayout?,
     ) {
         val layout = when(yandexNativeLayout) {
             YandexNativeLayout.Native50 -> R.layout.dora_yandex_native_ad_50

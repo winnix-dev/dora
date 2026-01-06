@@ -6,6 +6,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.AdmobBanner
 import com.winnix.dora.callback.LoadBannerCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.AdmobBannerSize
 import com.winnix.dora.yandex_manager.YandexBannerManager
 
@@ -17,6 +18,7 @@ object BannerManager {
         lifecycleOwner: LifecycleOwner,
         admobId: String,
         yandexId: String?,
+        callback: LoadBannerCallback?
     ) {
         if(Dora.canRequestAdmob(activity)) {
             AdmobBanner.loadBanner(
@@ -26,16 +28,25 @@ object BannerManager {
                 adSize = adSize,
                 lifecycleOwner = lifecycleOwner,
                 callback = object : LoadBannerCallback {
-                    override fun onLoadFailed() {
+                    override fun onLoadFailed(adProvider: AdProvider, errorCode: Int, errorMessage: String) {
                         yandexId?.let {
                             YandexBannerManager.loadBanner(
                                 activity = activity,
                                 container = container,
                                 lifecycleOwner = lifecycleOwner,
                                 id = it,
-                                callback = object : LoadBannerCallback {},
+                                callback = callback,
                             )
                         }
+                        callback?.onLoadFailed(adProvider, errorCode, errorMessage)
+                    }
+
+                    override fun onLoadSuccess(adProvider: AdProvider) {
+                        callback?.onLoadSuccess(adProvider)
+                    }
+
+                    override fun onLoad(adProvider: AdProvider) {
+                        callback?.onLoad(adProvider)
                     }
                 }
             )
@@ -46,7 +57,7 @@ object BannerManager {
                     container = container,
                     lifecycleOwner = lifecycleOwner,
                     id = it,
-                    callback = object : LoadBannerCallback {},
+                    callback = callback,
                 )
             }
         }

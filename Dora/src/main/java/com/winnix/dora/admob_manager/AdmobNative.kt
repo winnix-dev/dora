@@ -15,6 +15,8 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
+import com.winnix.dora.callback.LoadNativeCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.NativeResult
 import com.winnix.dora.model.NativeType
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +38,8 @@ internal object AdmobNative {
     fun loadAd(
         context: Context,
         id: String,
-        nativeType: NativeType
+        nativeType: NativeType,
+        callback: LoadNativeCallback?
     ) {
         val state = _nativeState.value.getOrElse(nativeType) { NativeResult.Idle }
         if (state is NativeResult.Loading || state is NativeResult.Success) {
@@ -48,9 +51,11 @@ internal object AdmobNative {
         CoroutineScope(Dispatchers.IO).launch {
             Dora.ensureInitialized()
 
+            callback?.onLoad(AdProvider.AD_MOB)
             val adLoader = AdLoader.Builder(context.applicationContext, id)
                 .forNativeAd { ad ->
                     updateAd(nativeType, NativeResult.Success(ad))
+                    callback?.loadSuccess(adProvider = AdProvider.AD_MOB,)
                 }
                 .withNativeAdOptions(
                     NativeAdOptions.Builder()
@@ -66,8 +71,13 @@ internal object AdmobNative {
                         override fun onAdFailedToLoad(p0: LoadAdError) {
                             super.onAdFailedToLoad(p0)
                             Log.e("Dora", "Load Admob Failed $p0")
-
                             updateAd(nativeType, NativeResult.Failed)
+
+                            callback?.loadFailed(
+                                errorCode = p0.code,
+                                errorMessage = p0.message,
+                                adProvider = AdProvider.AD_MOB,
+                            )
                         }
                     }
                 )
