@@ -40,6 +40,7 @@ internal object InterstitialManager {
         timeoutLong: Long,
         callback: ShowInterstitialCallback
     ) {
+
         activity.lifecycleScope.launch(Dispatchers.Main) {
             if (Dora.canRequestAdmob(activity)) {
                 withTimeoutOrNull(timeoutLong) {

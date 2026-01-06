@@ -169,6 +169,10 @@ object Dora {
             timeoutLong = timeout,
             callback = object : ShowInterstitialCallback {
                 override fun onDismiss() {
+                    adState = adState.copy(
+                        isIntersShowing = false
+                    )
+
                     if (isHandled.compareAndSet(false, true)) {
                         nativeAdJob?.cancel()
                         callback.onDismiss()
@@ -181,6 +185,10 @@ object Dora {
 
                 override fun onShow() {
                     hideLoadingDialog(activity)
+
+                    adState = adState.copy(
+                        isIntersShowing = true
+                    )
 
                     nativeAdJob = activity.lifecycleScope.launch(Dispatchers.Main) {
                         NativeManager.getAdFullState().first { state ->
@@ -215,6 +223,9 @@ object Dora {
 
                 override fun onShowFailed() {
                     hideLoadingDialog(activity)
+                    adState = adState.copy(
+                        isIntersShowing = false
+                    )
                     nativeAdJob?.cancel()
                     callback.onShowFailed()
                 }
@@ -363,10 +374,6 @@ object Dora {
                     adState = adState.copy(
                         isOpenAppShowing = false
                     )
-                }
-
-                override fun canLoad(): () -> Boolean {
-                    return { true }
                 }
 
             }

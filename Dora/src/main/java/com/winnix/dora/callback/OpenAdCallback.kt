@@ -4,5 +4,4 @@ interface OpenAdCallback {
     fun canShow() : () -> Boolean
     fun onShowAd()
     fun onDismiss()
-    fun canLoad(): () -> Boolean
 }

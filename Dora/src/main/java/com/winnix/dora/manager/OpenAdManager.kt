@@ -39,10 +39,6 @@ class OpenAdManager(
     }
 
     fun loadAd() {
-        if(! callback.canLoad()() ) {
-            return
-        }
-
         AdmobOpenAppManager.loadAd(application)
         YandexOpenApp.loadAd()
     }
