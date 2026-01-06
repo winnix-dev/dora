@@ -340,6 +340,7 @@ object Dora {
         application: Application,
         id: String,
         yandexId: String? = null,
+        showCondition: () -> Boolean
     ) {
         openAdManager = OpenAdManager(
             id = id,
@@ -348,7 +349,7 @@ object Dora {
             callback = object : OpenAdCallback {
                 override fun canShow(): () -> Boolean {
                     return {
-                        !adState.isShowingAdFullscreen
+                        !adState.isShowingAdFullscreen && showCondition()
                     }
                 }
 

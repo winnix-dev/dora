@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
         adType = AdType.Banner
     )
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -210,6 +211,10 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     Log.d(TAG, "Close Open App")
                 }
+            }
+
+            btnConditionAd.setOnClickListener {
+                AdConfig.canShowOpenAd = !AdConfig.canShowOpenAd
             }
 
         }
