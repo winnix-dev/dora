@@ -9,8 +9,11 @@ import androidx.core.view.WindowInsetsCompat
 import com.winnix.adsdk.databinding.ActivityMainBinding
 import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeLayout
+import com.winnix.dora.callback.LoadBannerCallback
 import com.winnix.dora.callback.LoadInterstitialCallback
+import com.winnix.dora.callback.LoadNativeCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.helper.AdProvider
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
 import com.winnix.dora.model.AdmobBannerSize
@@ -93,7 +96,38 @@ class MainActivity : AppCompatActivity() {
                     inter.id,
                     native.id,
                     object : LoadInterstitialCallback {
+                        override fun onBeginLoad(adProvider: AdProvider) {
+                            Log.d(TAG, "InterCallback: onBeginLoad")
+                        }
 
+                        override fun onLoaded(adProvider: AdProvider) {
+                            Log.d(TAG, "InterCallback: onLoaded $adProvider")
+                        }
+
+                        override fun onFailed(
+                            adProvider: AdProvider,
+                            errorCode: Int,
+                            errorMessage: String
+                        ) {
+                            Log.e(TAG, "InterCallback: onFailed $adProvider $errorCode $errorMessage")
+                        }
+                    },
+                    nativeFullCallback = object : LoadNativeCallback {
+                        override fun onLoad(adProvider: AdProvider) {
+                            Log.d(TAG, "NativeFullCallback: onLoad $adProvider")
+                        }
+
+                        override fun loadSuccess(adProvider: AdProvider) {
+                            Log.d(TAG, "NativeFullCallback: loadSuccess $adProvider")
+                        }
+
+                        override fun loadFailed(
+                            adProvider: AdProvider,
+                            errorCode: Int,
+                            errorMessage: String
+                        ) {
+                            Log.d(TAG, "NativeFullCallback: loadFailed $adProvider $errorCode $errorMessage")
+                        }
                     }
                 )
 
@@ -121,7 +155,24 @@ class MainActivity : AppCompatActivity() {
                     lifecycleOwner = this@MainActivity,
                     viewGroup = binding.flAd,
                     layout = NativeLayout.Native50,
-                    id = native.id
+                    id = native.id,
+                    callback = object : LoadNativeCallback {
+                        override fun onLoad(adProvider: AdProvider) {
+                            Log.d(TAG, "Native onLoad $adProvider")
+                        }
+
+                        override fun loadSuccess(adProvider: AdProvider) {
+                            Log.d(TAG, "Native loadSuccess $adProvider")
+                        }
+
+                        override fun loadFailed(
+                            adProvider: AdProvider,
+                            errorCode: Int,
+                            errorMessage: String
+                        ) {
+                            Log.e(TAG, "Native: onLoadFailed $adProvider $errorCode $errorMessage")
+                        }
+                    }
                 )
             }
 
@@ -131,7 +182,24 @@ class MainActivity : AppCompatActivity() {
                     container = binding.flAd,
                     adSize = AdmobBannerSize.Adaptive,
                     lifecycleOwner = this@MainActivity,
-                    adUnitId = banner.id
+                    adUnitId = banner.id,
+                    callback = object : LoadBannerCallback {
+                        override fun onLoad(adProvider: AdProvider) {
+                            Log.d(TAG, "Banner: onLoad $adProvider")
+                        }
+
+                        override fun onLoadSuccess(adProvider: AdProvider) {
+                            Log.d(TAG, "Banner: onLoadSuccess $adProvider")
+                        }
+
+                        override fun onLoadFailed(
+                            adProvider: AdProvider,
+                            errorCode: Int,
+                            errorMessage: String
+                        ) {
+                            Log.e(TAG, "Banner: onLoadFailed $adProvider $errorCode $errorMessage")
+                        }
+                    }
                 )
             }
 
