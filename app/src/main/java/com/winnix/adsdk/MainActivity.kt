@@ -144,6 +144,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            btnToggleOpenAd.setOnClickListener {
+                AdConfig.canShowOpenApp = !AdConfig.canShowOpenApp
+                Log.d(TAG, "canShowOpenApp: ${AdConfig.canShowOpenApp}")
+            }
+
         }
     }
 }

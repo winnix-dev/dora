@@ -162,8 +162,13 @@ object Dora {
             timeoutLong = timeout,
             callback = object : ShowInterstitialCallback {
                 override fun onDismiss() {
+                    adState = adState.copy(
+                        isIntersShowing = false
+                    )
+
                     if (isHandled.compareAndSet(false, true)) {
                         nativeAdJob?.cancel()
+
                         callback.onDismiss()
                     }
                 }
@@ -175,6 +180,10 @@ object Dora {
                 override fun onShow() {
                     hideLoadingDialog(activity)
 
+                    adState = adState.copy(
+                        isIntersShowing = true
+                    )
+
                     nativeAdJob = activity.lifecycleScope.launch(Dispatchers.Main) {
                         NativeManager.getAdFullState().first { state ->
                             if (state is NativeResult.Success) {
@@ -182,7 +191,7 @@ object Dora {
                                     if (isHandled.compareAndSet(false, true)) {
                                         val dialog = NativeFullDialog.newInstance(state.ad) {
                                             adState = adState.copy(
-                                                isNativeFullShowing = false
+                                                isNativeFullShowing = false,
                                             )
                                             callback.onDismiss()
                                         }
@@ -190,6 +199,7 @@ object Dora {
                                         adState = adState.copy(
                                             isNativeFullShowing = true
                                         )
+
                                         dialog.show(
                                             activity.supportFragmentManager,
                                             NativeFullDialog.TAG
@@ -204,11 +214,17 @@ object Dora {
                     }
 
                     callback.onShow()
+
                 }
 
                 override fun onShowFailed() {
                     hideLoadingDialog(activity)
                     nativeAdJob?.cancel()
+
+                    adState = adState.copy(
+                        isIntersShowing = false
+                    )
+
                     callback.onShowFailed()
                 }
 
@@ -323,6 +339,7 @@ object Dora {
         application: Application,
         id: String,
         yandexId: String? = null,
+        canShowOpenApp: () -> Boolean = { true }
     ) {
         openAdManager = OpenAdManager(
             id = id,
@@ -331,7 +348,8 @@ object Dora {
             callback = object : OpenAdCallback {
                 override fun canShow(): () -> Boolean {
                     return {
-                        !adState.isShowingAdFullscreen
+                        Log.d(TAG, "isShowingAdFullscreen=${adState.isShowingAdFullscreen} canShowOpenApp=${canShowOpenApp()}")
+                        !adState.isShowingAdFullscreen && canShowOpenApp()
                     }
                 }
 
