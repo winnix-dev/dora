@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.gms.ads.AdSize
 import com.winnix.adsdk.databinding.ActivityMainBinding
 import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeLayout
@@ -129,7 +130,7 @@ class MainActivity : AppCompatActivity() {
                 Dora.loadBanner(
                     activity = this@MainActivity,
                     container = binding.flAd,
-                    adSize = AdmobBannerSize.Adaptive,
+                    adSize = AdmobBannerSize.InlineAdaptive(250),
                     lifecycleOwner = this@MainActivity,
                     adUnitId = banner.id
                 )

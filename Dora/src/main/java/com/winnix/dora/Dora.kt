@@ -136,7 +136,7 @@ object Dora {
         timeout: Long = INTERSTITIAL_TIME_OUT,
         callback: ShowInterstitialCallback
     ) {
-        if (activity == null || activity.isDestroyed || activity.isFinishing || adState.isShowingAdFullscreen) {
+        if (activity == null || activity.isDestroyed || activity.isFinishing) {
             callback.onDismiss()
             return
         }

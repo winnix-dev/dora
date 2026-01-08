@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.winnix.dora.R
+import com.winnix.dora.callback.LoadNativeCallback
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.nativeads.NativeAd
 import com.yandex.mobile.ads.nativeads.NativeAdLoadListener
@@ -40,7 +41,7 @@ internal object YandexNativeManger {
             }
 
             override fun onAdFailedToLoad(error: AdRequestError) {
-                Log.e("Dora", "Load Yandex Native Failed: ${error.description}")
+                Log.e("Dora", "Yandex Native Failed: ${error.description}")
                 _mNativeAd.update { null }
                 isNativeLoading = false
             }
@@ -52,43 +53,50 @@ internal object YandexNativeManger {
     fun showNativeAd(
         viewGroup: ViewGroup,
         inflater: LayoutInflater,
-        yandexNativeLayout: YandexNativeLayout?
+        yandexNativeLayout: YandexNativeLayout?,
+        callback: LoadNativeCallback?
     ) {
-        val layout = when(yandexNativeLayout) {
-            YandexNativeLayout.Native50 -> R.layout.dora_yandex_native_ad_50
-            else -> R.layout.dora_yandex_native_ad_250
-        }
-        _mNativeAd.value?.let { nativeAd ->
-            val itemView = inflater.inflate(
-                layout,
-                viewGroup,
-                false
-            ) as NativeAdView
-
-            val binder = NativeAdViewBinder.Builder(itemView)
-                .setCallToActionView(itemView.findViewById(R.id.yandex_ad_call_to_action))
-                .setDomainView(itemView.findViewById(R.id.yandex_ad_domain))
-                .setIconView(itemView.findViewById(R.id.yandex_ad_icon))
-                .setMediaView(itemView.findViewById(R.id.yandex_ad_media))
-                .setTitleView(itemView.findViewById(R.id.yandex_ad_title))
-                .setSponsoredView(itemView.findViewById(R.id.yandex_ad_sponsored))
-                .setFeedbackView(itemView.findViewById(R.id.yandex_ad_feedback))
-                .setWarningView(itemView.findViewById(R.id.yandex_ad_warning))
-                .build()
-
-            try {
-                nativeAd.bindNativeAd(binder)
-
-                viewGroup.removeAllViews()
-                viewGroup.addView(itemView)
-                viewGroup.visibility = View.VISIBLE
-
-                _mNativeAd.update { null }
-                isNativeLoading = false
-
-            } catch (e: Exception) {
-                Log.e("Dora", "Failed to bind fixed size native ad $e")
+        if(_mNativeAd.value == null) {
+            callback?.loadFailed()
+        } else {
+            val layout = when(yandexNativeLayout) {
+                YandexNativeLayout.Native50 -> R.layout.dora_yandex_native_ad_50
+                else -> R.layout.dora_yandex_native_ad_250
             }
+            _mNativeAd.value?.let { nativeAd ->
+                val itemView = inflater.inflate(
+                    layout,
+                    viewGroup,
+                    false
+                ) as NativeAdView
+
+                val binder = NativeAdViewBinder.Builder(itemView)
+                    .setCallToActionView(itemView.findViewById(R.id.yandex_ad_call_to_action))
+                    .setDomainView(itemView.findViewById(R.id.yandex_ad_domain))
+                    .setIconView(itemView.findViewById(R.id.yandex_ad_icon))
+                    .setMediaView(itemView.findViewById(R.id.yandex_ad_media))
+                    .setTitleView(itemView.findViewById(R.id.yandex_ad_title))
+                    .setSponsoredView(itemView.findViewById(R.id.yandex_ad_sponsored))
+                    .setFeedbackView(itemView.findViewById(R.id.yandex_ad_feedback))
+                    .setWarningView(itemView.findViewById(R.id.yandex_ad_warning))
+                    .build()
+
+                try {
+                    nativeAd.bindNativeAd(binder)
+
+                    viewGroup.removeAllViews()
+                    viewGroup.addView(itemView)
+                    viewGroup.visibility = View.VISIBLE
+
+                    _mNativeAd.update { null }
+                    isNativeLoading = false
+
+                } catch (e: Exception) {
+                    Log.e("Dora", "Failed to bind fixed size native ad $e")
+                }
+            }
+            callback?.loadSuccess()
         }
+
     }
 }

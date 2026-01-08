@@ -44,6 +44,7 @@ internal object NativeManager {
         callback: LoadNativeCallback? = null
     ) {
         loadAd(activity, id, yandexId, nativeType)
+
         if (Dora.canRequestAdmob(activity)) {
             lifecycleOwner.lifecycleScope.launch {
                 AdmobNative.getAdState(nativeType).collectLatest { result ->
@@ -57,6 +58,8 @@ internal object NativeManager {
                                 viewGroup = viewGroup
                             )
                             AdmobNative.clearAd(NativeType.NATIVE)
+
+                            callback?.loadSuccess()
                         }
                         is NativeResult.Failed -> {
                             YandexNativeManger.showNativeAd(
@@ -67,7 +70,8 @@ internal object NativeManager {
                                         YandexNativeLayout.Native50
                                     }
                                     else -> YandexNativeLayout.Native250
-                                }
+                                },
+                                callback
                             )
                         }
                         else -> { }
@@ -83,7 +87,8 @@ internal object NativeManager {
                         YandexNativeLayout.Native50
                     }
                     else -> YandexNativeLayout.Native250
-                }
+                },
+                callback
             )
         }
     }
