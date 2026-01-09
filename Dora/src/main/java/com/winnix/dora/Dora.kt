@@ -100,6 +100,8 @@ object Dora {
         yandexAd.intersUnit = intersUnit
         yandexAd.nativeUnit = nativeUnit
         yandexAd.bannerUnit = bannerUnit
+
+        NativeManager.yandexId = nativeUnit
     }
 
     // Inters
@@ -200,12 +202,13 @@ object Dora {
                                             isNativeFullShowing = true
                                         )
 
+                                        NativeManager.clearNative(NativeType.NATIVE_FULL)
+
                                         dialog.show(
                                             activity.supportFragmentManager,
                                             NativeFullDialog.TAG
                                         )
 
-                                        NativeManager.clearNative(NativeType.NATIVE_FULL)
                                     }
                                 }
                             }
@@ -289,18 +292,15 @@ object Dora {
         viewGroup: ViewGroup,
         callback: LoadNativeCallback? = null
     ) {
-        lifecycleOwner.lifecycleScope.launch {
-            NativeManager.loadAndShowAd(
-                activity = activity,
-                id = id,
-                lifecycleOwner = lifecycleOwner,
-                nativeType = NativeType.NATIVE,
-                layoutAd = layout,
-                yandexId = yandexAd.nativeUnit,
-                viewGroup = viewGroup,
-                callback = callback
-            )
-        }
+        NativeManager.loadAndShowAd(
+            activity = activity,
+            id = id,
+            lifecycleOwner = lifecycleOwner,
+            nativeType = NativeType.NATIVE,
+            layoutAd = layout,
+            viewGroup = viewGroup,
+            callback = callback
+        )
     }
 
     fun loadNative(
@@ -311,7 +311,6 @@ object Dora {
             context = context,
             id = id,
             nativeType = NativeType.NATIVE,
-            yandexId = yandexAd.nativeUnit
         )
     }
 

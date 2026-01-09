@@ -164,7 +164,6 @@ internal object NativeHelper {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 this@registerWithLifecycle.destroy()
-
                 lifecycle.removeObserver(this)
             }
         })

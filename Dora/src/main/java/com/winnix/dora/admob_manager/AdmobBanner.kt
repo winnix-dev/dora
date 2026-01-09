@@ -108,7 +108,6 @@ object AdmobBanner {
                         displayMetrics.widthPixels
                     }
                     val adWidth = (adWidthPixels / displayMetrics.density).toInt()
-                    val maxHeight = (adSize.height * displayMetrics.density).toInt()
 
                     val size =
                         AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(activity, adWidth)
@@ -153,8 +152,7 @@ object AdmobBanner {
 
     private fun getAdaptiveAdSize(activity: Activity, container: ViewGroup): AdSize {
         val displayMetrics = activity.resources.displayMetrics
-        val frameWidth =
-            if (container.width > 0) container.width.toFloat() else displayMetrics.widthPixels.toFloat()
+        val frameWidth = if (container.width > 0) container.width.toFloat() else displayMetrics.widthPixels.toFloat()
         val adWidth = (frameWidth / displayMetrics.density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
     }

@@ -15,10 +15,12 @@ import com.yandex.mobile.ads.nativeads.NativeAdRequestConfiguration
 import com.yandex.mobile.ads.nativeads.NativeAdView
 import com.yandex.mobile.ads.nativeads.NativeAdViewBinder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 internal object YandexNativeManger {
     private val _mNativeAd = MutableStateFlow<NativeAd?>(null)
+    val nativeAdFlow = _mNativeAd.asStateFlow()
     private var isNativeLoading = false
 
     fun loadNativeAd(

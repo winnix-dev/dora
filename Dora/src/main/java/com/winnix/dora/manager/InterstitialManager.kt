@@ -41,77 +41,49 @@ internal object InterstitialManager {
         callback: ShowInterstitialCallback
     ) {
         activity.lifecycleScope.launch(Dispatchers.Main) {
-            if (Dora.canRequestAdmob(activity)) {
-                withTimeoutOrNull(timeoutLong) {
-                    AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success || it is InterstitialResult.Failed }
-                }
-                AdmobInterstitial.showAd(
-                    activity,
-                    listener = object : ShowInterstitialCallback {
-                        override fun onDismiss() {
-                            callback.onDismiss()
-                        }
-
-                        override fun onImpression() {
-                            callback.onImpression()
-                        }
-
-                        override fun onShow() {
-                            callback.onShow()
-                        }
-
-                        override fun onShowFailed() {
-                            YandexInterstitial.showAd(
-                                activity = activity,
-                                listener = object : ShowInterstitialCallback {
-                                    override fun onDismiss() {
-                                        callback.onDismiss()
-                                    }
-
-                                    override fun onShow() {
-                                        callback.onShow()
-                                    }
-
-                                    override fun onImpression() {
-                                        callback.onImpression()
-                                    }
-
-                                    override fun onShowFailed() {
-                                        callback.onShowFailed()
-                                        callback.onDismiss()
-                                    }
-                                }
-                            )
-                        }
-                    }
-                )
-            } else {
-                withTimeoutOrNull(timeoutLong) {
-                    YandexInterstitial.interstitialAd.first { it is YandexInterstitialResult.Success || it is YandexInterstitialResult.Failed }
-                }
-                YandexInterstitial.showAd(
-                    activity = activity,
-                    listener = object : ShowInterstitialCallback {
-                        override fun onDismiss() {
-                            callback.onDismiss()
-                        }
-
-                        override fun onShow() {
-                            callback.onShow()
-                        }
-
-                        override fun onImpression() {
-                            callback.onImpression()
-                        }
-
-                        override fun onShowFailed() {
-                            callback.onShowFailed()
-                            callback.onDismiss()
-                        }
-                    }
-                )
+            withTimeoutOrNull(timeoutLong) {
+                AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success || it is InterstitialResult.Failed }
             }
+            AdmobInterstitial.showAd(
+                activity,
+                listener = object : ShowInterstitialCallback {
+                    override fun onDismiss() {
+                        callback.onDismiss()
+                    }
 
+                    override fun onImpression() {
+                        callback.onImpression()
+                    }
+
+                    override fun onShow() {
+                        callback.onShow()
+                    }
+
+                    override fun onShowFailed() {
+                        YandexInterstitial.showAd(
+                            activity = activity,
+                            listener = object : ShowInterstitialCallback {
+                                override fun onDismiss() {
+                                    callback.onDismiss()
+                                }
+
+                                override fun onShow() {
+                                    callback.onShow()
+                                }
+
+                                override fun onImpression() {
+                                    callback.onImpression()
+                                }
+
+                                override fun onShowFailed() {
+                                    callback.onShowFailed()
+                                    callback.onDismiss()
+                                }
+                            }
+                        )
+                    }
+                }
+            )
         }
     }
     suspend fun waitForInterstitialWithTimeout(timeoutLong: Long) : Boolean {

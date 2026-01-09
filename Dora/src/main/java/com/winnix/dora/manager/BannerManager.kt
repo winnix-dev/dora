@@ -18,37 +18,25 @@ object BannerManager {
         admobId: String,
         yandexId: String?,
     ) {
-        if(Dora.canRequestAdmob(activity)) {
-            AdmobBanner.loadBanner(
-                id = admobId,
-                activity = activity,
-                container = container,
-                adSize = adSize,
-                lifecycleOwner = lifecycleOwner,
-                callback = object : LoadBannerCallback {
-                    override fun onLoadFailed() {
-                        yandexId?.let {
-                            YandexBannerManager.loadBanner(
-                                activity = activity,
-                                container = container,
-                                lifecycleOwner = lifecycleOwner,
-                                id = it,
-                                callback = object : LoadBannerCallback {},
-                            )
-                        }
+        AdmobBanner.loadBanner(
+            id = admobId,
+            activity = activity,
+            container = container,
+            adSize = adSize,
+            lifecycleOwner = lifecycleOwner,
+            callback = object : LoadBannerCallback {
+                override fun onLoadFailed() {
+                    yandexId?.let {
+                        YandexBannerManager.loadBanner(
+                            activity = activity,
+                            container = container,
+                            lifecycleOwner = lifecycleOwner,
+                            id = it,
+                            callback = object : LoadBannerCallback {},
+                        )
                     }
                 }
-            )
-        } else {
-            yandexId?.let {
-                YandexBannerManager.loadBanner(
-                    activity = activity,
-                    container = container,
-                    lifecycleOwner = lifecycleOwner,
-                    id = it,
-                    callback = object : LoadBannerCallback {},
-                )
             }
-        }
+        )
     }
 }

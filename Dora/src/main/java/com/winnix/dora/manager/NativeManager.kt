@@ -13,19 +13,28 @@ import com.winnix.dora.model.NativeResult
 import com.winnix.dora.model.NativeType
 import com.winnix.dora.yandex_manager.YandexNativeLayout
 import com.winnix.dora.yandex_manager.YandexNativeManger
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 internal object NativeManager {
+    private lateinit var admobId: String
+    var yandexId: String? = null
+
     fun loadAd(
         context: Context,
         id: String,
-        yandexId: String?,
         nativeType: NativeType
     ){
+        admobId = id
+
         AdmobNative.loadAd(
             context = context,
-            id = id,
+            id = admobId,
             nativeType = nativeType
         )
         yandexId?.let {
@@ -36,60 +45,68 @@ internal object NativeManager {
     fun loadAndShowAd(
         activity: Activity,
         id: String,
-        yandexId: String?,
         lifecycleOwner: LifecycleOwner,
         nativeType: NativeType,
         layoutAd: NativeLayout,
         viewGroup: ViewGroup,
         callback: LoadNativeCallback? = null
     ) {
-        loadAd(activity, id, yandexId, nativeType)
+        admobId = id
+        AdmobNative.resetState(nativeType)
 
-        if (Dora.canRequestAdmob(activity)) {
-            lifecycleOwner.lifecycleScope.launch {
-                AdmobNative.getAdState(nativeType).collectLatest { result ->
-                    when(result) {
-                        is NativeResult.Success -> {
-                            AdmobNative.showNativeAd(
-                                activity = activity,
-                                nativeAd = result.ad,
-                                viewLifecycle = lifecycleOwner.lifecycle,
-                                layoutAd = layoutAd.getLayoutAd(),
-                                viewGroup = viewGroup
-                            )
-                            AdmobNative.clearAd(NativeType.NATIVE)
+        loadNativeInternal(activity, nativeType)
 
-                            callback?.loadSuccess()
-                        }
-                        is NativeResult.Failed -> {
-                            YandexNativeManger.showNativeAd(
-                                viewGroup = viewGroup,
-                                inflater = activity.layoutInflater,
-                                yandexNativeLayout = when(layoutAd) {
-                                    NativeLayout.Native50, NativeLayout.NativeCollapsible -> {
-                                        YandexNativeLayout.Native50
-                                    }
-                                    else -> YandexNativeLayout.Native250
-                                },
-                                callback
-                            )
-                        }
-                        else -> { }
+        lifecycleOwner.lifecycleScope.launch {
+            merge(
+                AdmobNative.getAdState(nativeType).filter { it is NativeResult.Success },
+                YandexNativeManger.nativeAdFlow.filter { it != null }
+                    .onStart {
+                        delay(2000)
                     }
-                }
-            }
-        } else {
-            YandexNativeManger.showNativeAd(
-                viewGroup = viewGroup,
-                inflater = activity.layoutInflater,
-                yandexNativeLayout = when(layoutAd) {
-                    NativeLayout.Native50, NativeLayout.NativeCollapsible -> {
-                        YandexNativeLayout.Native50
-                    }
-                    else -> YandexNativeLayout.Native250
-                },
-                callback
             )
+                .first()
+
+            val result = AdmobNative.nativeState.value[nativeType]
+            if (result is NativeResult.Success) {
+                AdmobNative.showNativeAd(
+                    activity = activity,
+                    nativeAd = result.ad,
+                    viewLifecycle = lifecycleOwner.lifecycle,
+                    layoutAd = layoutAd.getLayoutAd(),
+                    viewGroup = viewGroup
+                )
+                AdmobNative.clearAd(NativeType.NATIVE)
+
+                callback?.loadSuccess()
+            }
+            else {
+                YandexNativeManger.showNativeAd(
+                    viewGroup = viewGroup,
+                    inflater = activity.layoutInflater,
+                    yandexNativeLayout = when(layoutAd) {
+                        NativeLayout.Native50, NativeLayout.NativeCollapsible -> {
+                            YandexNativeLayout.Native50
+                        }
+                        else -> YandexNativeLayout.Native250
+                    },
+                    callback
+                )
+            }
+        }
+    }
+
+    private fun loadNativeInternal(
+        context: Context,
+        nativeType: NativeType
+    ) {
+        AdmobNative.loadAd(
+            context = context,
+            id = admobId,
+            nativeType = nativeType
+        )
+
+        yandexId?.let {
+            YandexNativeManger.loadNativeAd(context, it)
         }
     }
 
