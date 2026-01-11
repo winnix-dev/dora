@@ -30,8 +30,8 @@ class MainActivity : AppCompatActivity() {
     )
 
     private val native = AdUnit(
-//        id = "ca-app-pub-3940256099942544/2247696110",
-        id = "ca-app-pub-3940256099942544/2247696111",
+        id = "ca-app-pub-3940256099942544/2247696110",
+//        id = "ca-app-pub-3940256099942544/2247696111",
         name = "ca-app-pub-3940256099942544/2247696110",
         adType = AdType.Native
     )

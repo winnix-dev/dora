@@ -89,6 +89,12 @@ internal object AdmobNative {
                             Log.e("Dora", "Load NativeFailed $p0")
                             handleLoadAdFail(nativeType, context, id)
                         }
+
+                        override fun onAdImpression() {
+                            super.onAdImpression()
+
+                            Log.d("Dora", "Native Impression $id")
+                        }
                     }
                 )
                 .build()
@@ -147,6 +153,7 @@ internal object AdmobNative {
     }
 
     fun clearAd(adType: NativeType) {
+        resetState(adType)
         updateAd(adType, NativeResult.Idle)
     }
 

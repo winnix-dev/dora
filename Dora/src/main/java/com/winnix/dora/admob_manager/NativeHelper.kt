@@ -1,6 +1,7 @@
 package com.winnix.dora.admob_manager
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -40,6 +41,8 @@ internal object NativeHelper {
         adView: NativeAdView,
         nativeAd: NativeAd
     ) {
+//        logNativeAdInfo(nativeAd)
+
         val viewGroup = adView.findViewById<ViewGroup>(R.id.ad_media)
         if (viewGroup != null) {
             val mediaView = MediaView(adView.context)
@@ -76,6 +79,7 @@ internal object NativeHelper {
         adView.headlineView = adView.findViewById(R.id.ad_headline)
         adView.bodyView = adView.findViewById(R.id.ad_body)
         adView.callToActionView = adView.findViewById(R.id.ad_call_to_action)
+//        adView.adChoicesView = adView.findViewById(R.id.ad_choices_container)
 //        adView.priceView = adView.findViewById(R.id.ad_price)
 //        adView.starRatingView = adView.findViewById(R.id.ad_stars)
 //        adView.storeView = adView.findViewById(R.id.ad_store)
@@ -167,6 +171,41 @@ internal object NativeHelper {
                 lifecycle.removeObserver(this)
             }
         })
+    }
+
+    fun logNativeAdInfo(nativeAd: NativeAd) {
+        val TAG = "Dora"
+
+        val info = StringBuilder().apply {
+            appendLine("--- [NATIVE AD INFO] ---")
+            appendLine("Headline: ${nativeAd.headline}")
+            appendLine("Body: ${nativeAd.body}")
+            appendLine("Call to Action: ${nativeAd.callToAction}")
+            appendLine("Advertiser: ${nativeAd.advertiser ?: "N/A"}")
+            appendLine("Store: ${nativeAd.store ?: "N/A"}")
+            appendLine("Price: ${nativeAd.price ?: "N/A"}")
+            appendLine("Star Rating: ${nativeAd.starRating ?: "N/A"}")
+            appendLine("Icon: ${if (nativeAd.icon != null) "Available (URI: ${nativeAd.icon?.uri})" else "Null"}")
+            appendLine("Images: ${nativeAd.images.size} image(s) found")
+
+            // Media Content (Video/Image)
+            nativeAd.mediaContent?.let {
+                appendLine("Media - Aspect Ratio: ${it.aspectRatio}")
+                appendLine("Media - Duration: ${it.duration}")
+                appendLine("Media - Has Video: ${it.hasVideoContent()}")
+            }
+
+            // Thông tin Mediation (Rất quan trọng để tối ưu doanh thu)
+            nativeAd.responseInfo?.let { responseInfo ->
+                appendLine("Response ID: ${responseInfo.responseId}")
+                appendLine("Mediation Adapter: ${responseInfo.mediationAdapterClassName}")
+                // Log chi tiết từng network trong waterfall (nếu cần)
+                appendLine("Loaded Adapter: ${responseInfo.loadedAdapterResponseInfo?.adSourceInstanceName}")
+            }
+            appendLine("-----------------------")
+        }.toString()
+
+        Log.d(TAG, info)
     }
 
 }

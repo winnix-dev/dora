@@ -64,6 +64,8 @@ class NativeFullDialog : DialogFragment() {
                 nativeAd = nativeAd
             )
 
+            binding.root.setNativeAd(nativeAd)
+
             nativeAd.registerWithLifecycle(viewLifecycleOwner.lifecycle)
         }
 

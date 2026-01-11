@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.winnix.dora.admob_manager.AdmobNative
 import com.winnix.dora.admob_manager.NativeLayout
 import com.winnix.dora.callback.LoadInterstitialCallback
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 
 object Dora {
@@ -149,7 +151,7 @@ object Dora {
                     context = activity,
                     id = it,
                     nativeFullId = lastNativeFullId,
-                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback{ }
+                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback { }
                 )
             }
 
@@ -188,7 +190,9 @@ object Dora {
 
                     nativeAdJob = activity.lifecycleScope.launch(Dispatchers.Main) {
                         NativeManager.getAdFullState().first { state ->
-                            if (state is NativeResult.Success) {
+                            val result = state is NativeResult.Success
+
+                            if (result) {
                                 if (canShowDialog(activity, NativeFullDialog.TAG)) {
                                     if (isHandled.compareAndSet(false, true)) {
                                         val dialog = NativeFullDialog.newInstance(state.ad) {
@@ -212,7 +216,7 @@ object Dora {
                                     }
                                 }
                             }
-                            state is NativeResult.Success
+                            result
                         }
                     }
 
@@ -406,4 +410,6 @@ object Dora {
         UMPHelper.showPrivacyOptionsForm(activity, onReturn)
 
     fun canRequestAdmob(activity: Activity) = UMPHelper.canRequestAds(activity)
+
+    fun getNativeFlow() = AdmobNative.nativeState
 }
