@@ -12,6 +12,7 @@ import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeLayout
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.callback.ShowRewardedCallback
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
 import com.winnix.dora.model.AdmobBannerSize
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val TAG = "Tagg MainActivity"
     }
+
     private lateinit var binding: ActivityMainBinding
 
     private val inter = AdUnit(
@@ -40,6 +42,12 @@ class MainActivity : AppCompatActivity() {
         id = "ca-app-pub-3940256099942544/9214589741",
         name = "",
         adType = AdType.Banner
+    )
+
+    private val rewarded = AdUnit(
+        id = "ca-app-pub-3940256099942544/9214589741",
+        name = "",
+        adType = AdType.Rewarded
     )
 
     private val openApp = AdUnit(
@@ -62,6 +70,11 @@ class MainActivity : AppCompatActivity() {
         id = "demo-banner-yandex",
         name = "",
         adType = AdType.Banner
+    )
+    private val rewardedYandex = AdUnit(
+        id = "demo-interstitial-yandex",
+        name = "",
+        adType = AdType.Inters
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +99,12 @@ class MainActivity : AppCompatActivity() {
             intersUnit = interYandex.id,
             nativeUnit = nativeYandex.id,
             bannerUnit = bannerYandex.id,
+            rewardedUnit = rewardedYandex.adType.getYandexDebugId()
+        )
+
+        Dora.loadRewardedAd(
+            context = this,
+            id = rewarded.adType.getAdmobDebugId()
         )
 
         binding.apply {
@@ -149,6 +168,17 @@ class MainActivity : AppCompatActivity() {
             btnToggleOpenAd.setOnClickListener {
                 AdConfig.canShowOpenApp = !AdConfig.canShowOpenApp
                 Log.d(TAG, "canShowOpenApp: ${AdConfig.canShowOpenApp}")
+            }
+
+            btnRewarded.setOnClickListener {
+                Dora.showRewardedAd(
+                    this@MainActivity, 6000L,
+                    object : ShowRewardedCallback {
+                        override fun showSuccess() {
+                            Log.d(TAG, "Rewarded Show Success")
+                        }
+                    },
+                )
             }
 
         }

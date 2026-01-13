@@ -5,6 +5,7 @@ sealed class AdType {
     object Native : AdType()
     object Banner : AdType()
     object OpenApp : AdType()
+    object Rewarded : AdType()
 
     fun getAdmobDebugId() : String {
         return when(this) {
@@ -12,6 +13,7 @@ sealed class AdType {
             Inters -> "ca-app-pub-3940256099942544/1033173712"
             Native -> "ca-app-pub-3940256099942544/2247696110"
             OpenApp -> "ca-app-pub-3940256099942544/9257395921"
+            Rewarded -> "ca-app-pub-3940256099942544/5224354917"
         }
     }
 
@@ -19,8 +21,9 @@ sealed class AdType {
         return when(this) {
             Banner -> "demo-banner-yandex"
             Inters -> "demo-interstitial-yandex"
-            Native -> "demo-native-bulk-yandex"
+            Native -> "demo-native-slider-yandex"
             OpenApp -> "demo-appopenad-yandex"
+            Rewarded -> "demo-rewarded-yandex"
         }
     }
 

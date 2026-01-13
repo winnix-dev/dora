@@ -46,7 +46,7 @@ internal object UMPHelper {
                     }
                 },
                 { requestConsentError  ->
-                    Log.e("Dora", "fetchConsent $requestConsentError ")
+                    Log.e("Dora", "fetchConsent ${requestConsentError.errorCode} ${requestConsentError.message}")
 
                     onComplete(consentInformation.canRequestAds())
                 }

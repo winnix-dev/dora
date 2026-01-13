@@ -13,23 +13,30 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.winnix.dora.admob_manager.AdmobNative
+import com.winnix.dora.admob_manager.AdmobRewarded
 import com.winnix.dora.admob_manager.NativeLayout
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.LoadNativeCallback
+import com.winnix.dora.callback.LoadRewardedCallback
 import com.winnix.dora.callback.OpenAdCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.callback.ShowRewardedCallback
 import com.winnix.dora.helper.UMPHelper
 import com.winnix.dora.manager.BannerManager
 import com.winnix.dora.manager.InterstitialManager
 import com.winnix.dora.manager.NativeManager
 import com.winnix.dora.manager.OpenAdManager
+import com.winnix.dora.manager.RewardManager
 import com.winnix.dora.model.AdState
+import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdmobBannerSize
 import com.winnix.dora.model.NativeResult
 import com.winnix.dora.model.NativeType
+import com.winnix.dora.model.RewardedResult
 import com.winnix.dora.ui.LoadingAdDialogFragment
 import com.winnix.dora.ui.NativeFullDialog
 import com.winnix.dora.yandex_manager.YandexAd
+import com.winnix.dora.yandex_manager.YandexRewardedManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +49,7 @@ import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 
 object Dora {
-    private const val TAG = "Dora"
+    internal const val TAG = "Dora"
     private const val INTERSTITIAL_TIME_OUT = 6000L
     private val initBarrier = CompletableDeferred<Unit>()
     private var openAdManager: OpenAdManager? = null
@@ -77,8 +84,7 @@ object Dora {
                             completeInitAd()
                         }
                     }
-                }
-                else {
+                } else {
                     Log.w(TAG, "initialize: Khởi tạo Consent thất bại")
                 }
             }
@@ -95,15 +101,24 @@ object Dora {
     }
 
     fun setUpYandex(
-        intersUnit: String?,
-        nativeUnit: String?,
-        bannerUnit: String?,
+        intersUnit: String? = null,
+        nativeUnit: String? = null,
+        bannerUnit: String? = null,
+        rewardedUnit: String? = null
     ) {
-        yandexAd.intersUnit = intersUnit
-        yandexAd.nativeUnit = nativeUnit
-        yandexAd.bannerUnit = bannerUnit
-
-        NativeManager.yandexId = nativeUnit
+        intersUnit?.let {
+            yandexAd.intersUnit = it
+        }
+        nativeUnit?.let {
+            yandexAd.nativeUnit = it
+            NativeManager.yandexId = it
+        }
+        bannerUnit?.let {
+            yandexAd.bannerUnit = it
+        }
+        rewardedUnit?.let {
+            RewardManager.yandexId = it
+        }
     }
 
     // Inters
@@ -151,7 +166,7 @@ object Dora {
                     context = activity,
                     id = it,
                     nativeFullId = lastNativeFullId,
-                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback { }
+                    listener = lastInterstitialCallback ?: object : LoadInterstitialCallback {}
                 )
             }
 
@@ -351,7 +366,10 @@ object Dora {
             callback = object : OpenAdCallback {
                 override fun canShow(): () -> Boolean {
                     return {
-                        Log.d(TAG, "isShowingAdFullscreen=${adState.isShowingAdFullscreen} canShowOpenApp=${canShowOpenApp()}")
+                        Log.d(
+                            TAG,
+                            "isShowingAdFullscreen=${adState.isShowingAdFullscreen} canShowOpenApp=${canShowOpenApp()}"
+                        )
                         !adState.isShowingAdFullscreen && canShowOpenApp()
                     }
                 }
@@ -399,6 +417,70 @@ object Dora {
                 onDismiss()
             }
         }
+    }
+
+    // Rewarded
+    private var cachedId: String? = null
+    private var cachedCallback: LoadRewardedCallback? = null
+
+    fun loadRewardedAd(
+        context: Context?,
+        id: String,
+        listener: LoadRewardedCallback? = null
+    ) {
+        if (context == null) return
+
+        cachedId = id
+        cachedCallback = listener
+
+        RewardManager.loadAd(
+            context,
+            id,
+            listener
+        )
+    }
+
+    fun showRewardedAd(
+        activity: AppCompatActivity?,
+        timeoutLong: Long,
+        callback: ShowRewardedCallback
+    ) {
+        if (activity == null || activity.isDestroyed || activity.isFinishing) {
+            callback.showFailed()
+            return
+        }
+
+        if(!RewardManager.isAdmobAvailable()) {
+            showLoadingDialog(activity)
+            cachedId?.let {
+                RewardManager.loadAd(
+                    activity,
+                    it,
+                    cachedCallback
+                )
+            }
+        }
+
+        RewardManager.showAd(
+            activity,
+            timeoutLong,
+            object : ShowRewardedCallback {
+                override fun onShow() {
+                    hideLoadingDialog(activity)
+                    callback.onShow()
+                }
+
+                override fun showFailed() {
+                    hideLoadingDialog(activity)
+                    callback.showFailed()
+                }
+
+                override fun showSuccess() {
+                    hideLoadingDialog(activity)
+                    callback.showSuccess()
+                }
+            }
+        )
     }
 
     fun getOpenAppState() = openAdManager?.showState
