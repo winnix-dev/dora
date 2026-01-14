@@ -2,10 +2,13 @@ package com.winnix.dora.yandex_manager
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
-import com.winnix.dora.model.YandexInterstitialResult
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
+import com.winnix.dora.model.DoraAdError
+import com.winnix.dora.model.InterstitialResult
+import com.winnix.dora.model.InterstitialState
 import com.yandex.mobile.ads.common.AdError
 import com.yandex.mobile.ads.common.AdRequestConfiguration
 import com.yandex.mobile.ads.common.AdRequestError
@@ -19,7 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 internal object YandexInterstitial {
-    private val _interstitialAd = MutableStateFlow<YandexInterstitialResult>(YandexInterstitialResult.Idle)
+    private val _interstitialAd = MutableStateFlow<InterstitialState>(InterstitialState.Idle)
     val interstitialAd = _interstitialAd.asStateFlow()
 
     fun loadAd(
@@ -28,7 +31,7 @@ internal object YandexInterstitial {
         listener: LoadInterstitialCallback? = null
     ) {
         val state = _interstitialAd.value
-        if (state is YandexInterstitialResult.Loading || state is YandexInterstitialResult.Success) {
+        if (state is InterstitialState.Loading || state is InterstitialState.Success) {
             return
         }
 
@@ -37,23 +40,29 @@ internal object YandexInterstitial {
         val interstitialAdLoader = InterstitialAdLoader(context.applicationContext).apply {
             setAdLoadListener(object : InterstitialAdLoadListener {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                    _interstitialAd.update { YandexInterstitialResult.Success(interstitialAd) }
+                    DoraLogger.logYandexLoadSuccess(AdType.Inters,id)
+                    _interstitialAd.update { InterstitialState.Success(InterstitialResult.Yandex(interstitialAd)) }
 
                     listener?.onLoaded()
                 }
 
                 override fun onAdFailedToLoad(error: AdRequestError) {
-                    Log.e("Dora", "Load Inters Yandex Failed $error")
-                    _interstitialAd.update { YandexInterstitialResult.Failed }
+                    DoraLogger.logYandexLoadFail(AdType.Inters,id, error)
+                    _interstitialAd.update { InterstitialState.Failed }
 
-                    listener?.onFailed()
+                    listener?.onFailed(
+                        DoraAdError(
+                            errorCode = error.code,
+                            errorMessage = error.description
+                        )
+                    )
                 }
             })
         }
 
         val adRequest = AdRequestConfiguration.Builder(id).build()
 
-        _interstitialAd.update { YandexInterstitialResult.Loading }
+        _interstitialAd.update { InterstitialState.Loading }
         interstitialAdLoader.loadAd(adRequest)
     }
 
@@ -63,18 +72,23 @@ internal object YandexInterstitial {
     ) {
         val state = _interstitialAd.value
 
-        if (state is YandexInterstitialResult.Success) {
-            state.ad.apply {
+        if (state is InterstitialState.Success && state.data is InterstitialResult.Yandex) {
+            state.data.ad.apply {
                 setAdEventListener(object : InterstitialAdEventListener {
                     override fun onAdShown() {
-                        _interstitialAd.update { YandexInterstitialResult.Idle }
+                        _interstitialAd.update { InterstitialState.Idle }
                         listener.onShow()
                     }
 
                     override fun onAdFailedToShow(adError: AdError) {
-                        Log.e("Dora", "onAdFailedToShow: $adError")
-                        _interstitialAd.update { YandexInterstitialResult.Idle }
-                        listener.onShowFailed()
+                        DoraLogger.logYandexShowFail(AdType.Inters, adError)
+                        _interstitialAd.update { InterstitialState.Idle }
+                        listener.onShowFailed(
+                            DoraAdError(
+                                errorCode = 0,
+                                errorMessage = adError.description
+                            )
+                        )
                     }
 
                     override fun onAdDismissed() {
@@ -91,7 +105,12 @@ internal object YandexInterstitial {
             }
         }
         else {
-            listener.onShowFailed()
+            listener.onShowFailed(
+                DoraAdError(
+                    errorCode = 1924,
+                    errorMessage = "No Ad Available"
+                )
+            )
         }
     }
 

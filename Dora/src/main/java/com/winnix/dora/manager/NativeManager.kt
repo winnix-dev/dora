@@ -5,7 +5,6 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.AdmobNative
 import com.winnix.dora.admob_manager.NativeLayout
 import com.winnix.dora.callback.LoadNativeCallback
@@ -14,7 +13,6 @@ import com.winnix.dora.model.NativeType
 import com.winnix.dora.yandex_manager.YandexNativeLayout
 import com.winnix.dora.yandex_manager.YandexNativeManger
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.merge

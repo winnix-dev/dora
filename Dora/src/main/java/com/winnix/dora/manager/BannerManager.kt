@@ -3,7 +3,6 @@ package com.winnix.dora.manager
 import android.app.Activity
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
-import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.AdmobBanner
 import com.winnix.dora.callback.LoadBannerCallback
 import com.winnix.dora.model.AdmobBannerSize

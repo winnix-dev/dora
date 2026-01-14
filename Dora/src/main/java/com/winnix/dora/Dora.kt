@@ -11,9 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.RequestConfiguration
 import com.winnix.dora.admob_manager.AdmobNative
-import com.winnix.dora.admob_manager.AdmobRewarded
 import com.winnix.dora.admob_manager.NativeLayout
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.LoadNativeCallback
@@ -28,15 +26,13 @@ import com.winnix.dora.manager.NativeManager
 import com.winnix.dora.manager.OpenAdManager
 import com.winnix.dora.manager.RewardManager
 import com.winnix.dora.model.AdState
-import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdmobBannerSize
+import com.winnix.dora.model.DoraAdError
 import com.winnix.dora.model.NativeResult
 import com.winnix.dora.model.NativeType
-import com.winnix.dora.model.RewardedResult
 import com.winnix.dora.ui.LoadingAdDialogFragment
 import com.winnix.dora.ui.NativeFullDialog
 import com.winnix.dora.yandex_manager.YandexAd
-import com.winnix.dora.yandex_manager.YandexRewardedManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +41,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 
 object Dora {
@@ -79,13 +74,14 @@ object Dora {
                 val context = activity.application
                 if (isSuccess) {
                     Log.d(TAG, "initialize: Khởi tạo Consent thành công")
-                    CoroutineScope(Dispatchers.IO).launch {
-                        MobileAds.initialize(context) {
-                            completeInitAd()
-                        }
-                    }
                 } else {
                     Log.w(TAG, "initialize: Khởi tạo Consent thất bại")
+                }
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    MobileAds.initialize(context) {
+                        completeInitAd()
+                    }
                 }
             }
         }
@@ -239,7 +235,7 @@ object Dora {
 
                 }
 
-                override fun onShowFailed() {
+                override fun onShowFailed(adError: DoraAdError) {
                     hideLoadingDialog(activity)
                     nativeAdJob?.cancel()
 
@@ -247,7 +243,7 @@ object Dora {
                         isIntersShowing = false
                     )
 
-                    callback.onShowFailed()
+                    callback.onShowFailed(adError)
                 }
 
             }
@@ -264,7 +260,12 @@ object Dora {
             if (result) {
                 callback.onLoaded()
             } else {
-                callback.onFailed()
+                callback.onFailed(
+                    DoraAdError(
+                        errorCode = 1924,
+                        errorMessage = "No Ads Available!"
+                    )
+                )
             }
         }
     }

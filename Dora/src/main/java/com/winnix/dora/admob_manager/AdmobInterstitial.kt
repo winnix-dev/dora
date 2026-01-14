@@ -2,7 +2,6 @@ package com.winnix.dora.admob_manager
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -12,7 +11,11 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
+import com.winnix.dora.model.DoraAdError
 import com.winnix.dora.model.InterstitialResult
+import com.winnix.dora.model.InterstitialState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal object AdmobInterstitial {
-    private val _interstitialAd = MutableStateFlow<InterstitialResult>(InterstitialResult.Idle)
+    private val _interstitialAd = MutableStateFlow<InterstitialState>(InterstitialState.Idle)
     val interstitialAd = _interstitialAd.asStateFlow()
 
     fun loadAd(
@@ -31,8 +34,8 @@ internal object AdmobInterstitial {
     ) {
         val state = _interstitialAd.value
 
-        if (state is InterstitialResult.Success || state is InterstitialResult.Loading) return
-        _interstitialAd.update { InterstitialResult.Loading }
+        if (state is InterstitialState.Success || state is InterstitialState.Loading) return
+        _interstitialAd.update { InterstitialState.Loading }
 
         CoroutineScope(Dispatchers.Main).launch {
             Dora.ensureInitialized()
@@ -45,19 +48,30 @@ internal object AdmobInterstitial {
                 adRequest,
                 object : InterstitialAdLoadCallback() {
                     override fun onAdLoaded(p0: InterstitialAd) {
-
-                        _interstitialAd.update { InterstitialResult.Success(p0) }
-
+                        DoraLogger.logAdMobLoadSuccess(AdType.Inters, id)
+                        _interstitialAd.update {
+                            InterstitialState.Success(
+                                InterstitialResult.AdMob(
+                                    p0
+                                )
+                            )
+                        }
                         listener?.onLoaded()
                     }
 
                     override fun onAdFailedToLoad(p0: LoadAdError) {
-                        _interstitialAd.update { InterstitialResult.Failed }
+                        DoraLogger.logAdMobLoadFail(AdType.Inters, id, p0)
+                        _interstitialAd.update { InterstitialState.Failed }
 
-                        listener?.onFailed()
+                        listener?.onFailed(
+                            DoraAdError(
+                                errorMessage = p0.message,
+                                errorCode = p0.code
+                            )
+                        )
                     }
-
-                })
+                }
+            )
         }
     }
 
@@ -66,32 +80,41 @@ internal object AdmobInterstitial {
         listener: ShowInterstitialCallback
     ) {
         val state = _interstitialAd.value
-        if(state is InterstitialResult.Success) {
-            state.ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                override fun onAdDismissedFullScreenContent() {
-                    listener.onDismiss()
+        if (state is InterstitialState.Success && state.data is InterstitialResult.AdMob) {
+            state.data.ad.apply {
+                fullScreenContentCallback = object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        listener.onDismiss()
+                    }
+
+                    override fun onAdShowedFullScreenContent() {
+                        _interstitialAd.update { InterstitialState.Idle }
+
+                        listener.onShow()
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(p0: AdError) {
+                        DoraLogger.logAdMobShowFail( AdType.Inters, p0)
+                        _interstitialAd.update { InterstitialState.Failed }
+
+                        listener.onShowFailed(
+                            DoraAdError(
+                                errorCode = p0.code,
+                                errorMessage = p0.message
+                            )
+                        )
+                    }
                 }
 
-                override fun onAdShowedFullScreenContent() {
-                    _interstitialAd.update { InterstitialResult.Idle }
-
-                    listener.onShow()
-                }
-
-                override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                    Log.e("Dora", p0.toString())
-                    _interstitialAd.update { InterstitialResult.Failed }
-
-                    listener.onShowFailed()
-                }
+                show(activity)
             }
-
-            state.ad.show(activity)
+        } else {
+            listener.onShowFailed(
+                DoraAdError(
+                    errorCode = 1924,
+                    errorMessage = "Ad not Available"
+                )
+            )
         }
-        else {
-            listener.onShowFailed()
-        }
-
     }
-
 }

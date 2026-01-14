@@ -3,12 +3,11 @@ package com.winnix.dora.manager
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.AdmobInterstitial
 import com.winnix.dora.callback.LoadInterstitialCallback
 import com.winnix.dora.callback.ShowInterstitialCallback
-import com.winnix.dora.model.InterstitialResult
-import com.winnix.dora.model.YandexInterstitialResult
+import com.winnix.dora.model.DoraAdError
+import com.winnix.dora.model.InterstitialState
 import com.winnix.dora.yandex_manager.YandexInterstitial
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -42,7 +41,11 @@ internal object InterstitialManager {
     ) {
         activity.lifecycleScope.launch(Dispatchers.Main) {
             withTimeoutOrNull(timeoutLong) {
-                AdmobInterstitial.interstitialAd.first { it is InterstitialResult.Success || it is InterstitialResult.Failed }
+                AdmobInterstitial.interstitialAd.first { it is InterstitialState.Success || it is InterstitialState.Failed }
+
+                if (AdmobInterstitial.interstitialAd.value is InterstitialState.Failed) {
+                    YandexInterstitial.interstitialAd.first { it is InterstitialState.Success || it is InterstitialState.Failed }
+                }
             }
             AdmobInterstitial.showAd(
                 activity,
@@ -59,7 +62,7 @@ internal object InterstitialManager {
                         callback.onShow()
                     }
 
-                    override fun onShowFailed() {
+                    override fun onShowFailed(adError: DoraAdError) {
                         YandexInterstitial.showAd(
                             activity = activity,
                             listener = object : ShowInterstitialCallback {
@@ -75,8 +78,8 @@ internal object InterstitialManager {
                                     callback.onImpression()
                                 }
 
-                                override fun onShowFailed() {
-                                    callback.onShowFailed()
+                                override fun onShowFailed(adError: DoraAdError) {
+                                    callback.onShowFailed(adError)
                                     callback.onDismiss()
                                 }
                             }
@@ -89,18 +92,18 @@ internal object InterstitialManager {
     suspend fun waitForInterstitialWithTimeout(timeoutLong: Long) : Boolean {
         val admobResult = withTimeoutOrNull(timeoutLong) {
             AdmobInterstitial.interstitialAd.first {
-                it is InterstitialResult.Success || it is InterstitialResult.Failed
+                it is InterstitialState.Success || it is InterstitialState.Failed
             }
-            if(AdmobInterstitial.interstitialAd.value is InterstitialResult.Success) {
+            if(AdmobInterstitial.interstitialAd.value is InterstitialState.Success) {
                 return@withTimeoutOrNull true
             }
             YandexInterstitial.interstitialAd.first {
-                it is YandexInterstitialResult.Success || it is YandexInterstitialResult.Failed
+                it is InterstitialState.Success || it is InterstitialState.Failed
             }
-            return@withTimeoutOrNull YandexInterstitial.interstitialAd.value is YandexInterstitialResult.Success
+            return@withTimeoutOrNull YandexInterstitial.interstitialAd.value is InterstitialState.Success
         }
 
         return admobResult == true
     }
-    fun isAdmobAlready() : Boolean = AdmobInterstitial.interstitialAd.value is InterstitialResult.Success
+    fun isAdmobAlready() : Boolean = AdmobInterstitial.interstitialAd.value is InterstitialState.Success
 }

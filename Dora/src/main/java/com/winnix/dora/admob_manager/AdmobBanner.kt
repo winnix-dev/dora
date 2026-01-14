@@ -1,14 +1,10 @@
 package com.winnix.dora.admob_manager
 
 import android.app.Activity
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowMetrics
-import android.widget.LinearLayout
-import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -22,6 +18,8 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.winnix.dora.Dora
 import com.winnix.dora.callback.LoadBannerCallback
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdmobBannerSize
 import kotlinx.coroutines.launch
 
@@ -57,13 +55,13 @@ object AdmobBanner {
 
             adView.adListener = object : AdListener() {
                 override fun onAdFailedToLoad(p0: LoadAdError) {
-                    Log.e("Dora", "load Banner fail: $p0")
+                    DoraLogger.logAdMobLoadFail(AdType.Banner, id, p0)
                     lifecycleOwner.lifecycle.removeObserver(adLifecycleObserver)
                     callback.onLoadFailed()
                 }
 
                 override fun onAdLoaded() {
-
+                    DoraLogger.logAdMobLoadSuccess(AdType.Banner, id)
                     if (adSize is AdmobBannerSize.InlineAdaptive) {
                         val maxHeight =
                             (adSize.height * activity.resources.displayMetrics.density).toInt()

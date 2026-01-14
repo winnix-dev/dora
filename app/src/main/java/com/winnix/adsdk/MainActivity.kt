@@ -16,6 +16,7 @@ import com.winnix.dora.callback.ShowRewardedCallback
 import com.winnix.dora.model.AdType
 import com.winnix.dora.model.AdUnit
 import com.winnix.dora.model.AdmobBannerSize
+import com.winnix.dora.model.DoraAdError
 
 class MainActivity : AppCompatActivity() {
 
@@ -125,7 +126,7 @@ class MainActivity : AppCompatActivity() {
                             Log.d(TAG, "On Inters Dismiss")
                         }
 
-                        override fun onShowFailed() {
+                        override fun onShowFailed(doraAdError: DoraAdError) {
                             Log.d(TAG, "On Inters Show Failed")
                         }
 

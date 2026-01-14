@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.winnix.dora.R
 import com.winnix.dora.callback.LoadNativeCallback
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.nativeads.NativeAd
 import com.yandex.mobile.ads.nativeads.NativeAdLoadListener
@@ -38,12 +40,13 @@ internal object YandexNativeManger {
 
         loader.setNativeAdLoadListener(object : NativeAdLoadListener {
             override fun onAdLoaded(nativeAd: NativeAd) {
+                DoraLogger.logYandexLoadSuccess(AdType.Native,id)
                 _mNativeAd.update { nativeAd }
                 isNativeLoading = false
             }
 
             override fun onAdFailedToLoad(error: AdRequestError) {
-                Log.e("Dora", "Yandex Native Failed: ${error.description}")
+                DoraLogger.logYandexLoadFail(AdType.Native, id, error)
                 _mNativeAd.update { null }
                 isNativeLoading = false
             }

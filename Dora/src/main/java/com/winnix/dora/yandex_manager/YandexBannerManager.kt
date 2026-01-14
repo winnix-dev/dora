@@ -1,15 +1,13 @@
 package com.winnix.dora.yandex_manager
 
 import android.app.Activity
-import android.graphics.Color
-import android.util.Log
 import android.view.ViewGroup
-import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.winnix.dora.R
 import com.winnix.dora.callback.LoadBannerCallback
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
 import com.yandex.mobile.ads.banner.BannerAdEventListener
 import com.yandex.mobile.ads.banner.BannerAdSize
 import com.yandex.mobile.ads.banner.BannerAdView
@@ -42,11 +40,12 @@ object YandexBannerManager {
                 }
 
                 override fun onAdFailedToLoad(error: AdRequestError) {
-                    Log.d("Dora", "Yandex Banner Fail: $error")
+                    DoraLogger.logYandexLoadFail(AdType.Banner, id, error)
                     callback.onLoadFailed()
                 }
 
                 override fun onAdLoaded() {
+                    DoraLogger.logYandexLoadSuccess(AdType.Banner, id)
                     callback.onLoadSuccess()
                     if(activity.isDestroyed) {
                         banner.destroy()

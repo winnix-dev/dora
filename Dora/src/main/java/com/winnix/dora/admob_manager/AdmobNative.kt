@@ -15,6 +15,8 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.winnix.dora.Dora
 import com.winnix.dora.admob_manager.NativeHelper.registerWithLifecycle
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
 import com.winnix.dora.model.NativeResult
 import com.winnix.dora.model.NativeType
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +30,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 internal object AdmobNative {
     private val _nativeState = MutableStateFlow<Map<NativeType, NativeResult>>(mapOf())
@@ -70,6 +71,7 @@ internal object AdmobNative {
 
             val adLoader = AdLoader.Builder(context.applicationContext, id)
                 .forNativeAd { ad ->
+                    DoraLogger.logAdMobLoadSuccess(AdType.Native, id)
                     resetState(nativeType)
                     updateAd(nativeType, NativeResult.Success(ad))
                 }
@@ -86,7 +88,8 @@ internal object AdmobNative {
                     object : AdListener() {
                         override fun onAdFailedToLoad(p0: LoadAdError) {
                             super.onAdFailedToLoad(p0)
-                            Log.e("Dora", "Load NativeFailed $p0")
+                            DoraLogger.logAdMobLoadFail(AdType.Native,id, p0)
+
                             handleLoadAdFail(nativeType, context, id)
                         }
 

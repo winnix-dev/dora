@@ -1,10 +1,8 @@
 package com.winnix.dora.manager
 
-import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.winnix.dora.admob_manager.AdmobRewarded
 import com.winnix.dora.callback.LoadRewardedCallback
 import com.winnix.dora.callback.ShowRewardedCallback
