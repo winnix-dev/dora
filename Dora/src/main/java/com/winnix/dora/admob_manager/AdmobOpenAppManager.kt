@@ -8,8 +8,11 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.winnix.dora.Dora
 import com.winnix.dora.Dora.ensureInitialized
 import com.winnix.dora.callback.ShowAdCallback
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,13 +45,14 @@ object AdmobOpenAppManager {
                 AdRequest.Builder().build(),
                 object : AppOpenAd.AppOpenAdLoadCallback() {
                     override fun onAdLoaded(p0: AppOpenAd) {
+                        DoraLogger.logAdMobLoadSuccess(AdType.OpenApp, id)
                         isLoading = false
                         openAd = p0
                         loadTime = System.currentTimeMillis()
                     }
 
                     override fun onAdFailedToLoad(p0: LoadAdError) {
-                        Log.e("Dora", "admob OpenApp failed: $p0")
+                        DoraLogger.logAdMobLoadFail(AdType.OpenApp, id, p0)
                         isLoading = false
                     }
                 }
@@ -83,7 +87,7 @@ object AdmobOpenAppManager {
             }
 
             override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                Log.d("Dora", "onAdFailedToShowFullScreenContent $p0")
+                DoraLogger.logAdMobShowFail(AdType.OpenApp, p0)
                 openAd = null
                 loadAd(activity)
                 callback.onShowFail()

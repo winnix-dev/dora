@@ -2,8 +2,9 @@ package com.winnix.dora.yandex_manager
 
 import android.app.Activity
 import android.app.Application
-import android.util.Log
 import com.winnix.dora.callback.ShowAdCallback
+import com.winnix.dora.helper.DoraLogger
+import com.winnix.dora.model.AdType
 import com.yandex.mobile.ads.appopenad.AppOpenAd
 import com.yandex.mobile.ads.appopenad.AppOpenAdEventListener
 import com.yandex.mobile.ads.appopenad.AppOpenAdLoadListener
@@ -26,12 +27,12 @@ object YandexOpenApp {
 
         val appOpenAdLoadListener = object : AppOpenAdLoadListener {
             override fun onAdFailedToLoad(error: AdRequestError) {
-                Log.e("TAGG", "onAdFailedToLoad: Yandex $error", )
+                DoraLogger.logYandexLoadFail(AdType.OpenApp, id, error)
                 isLoading = false
             }
 
             override fun onAdLoaded(appOpenAd: AppOpenAd) {
-
+                DoraLogger.logYandexLoadSuccess(AdType.OpenApp, id)
                 openAd = appOpenAd
                 isLoading = false
             }
@@ -72,7 +73,7 @@ object YandexOpenApp {
             }
 
             override fun onAdFailedToShow(adError: AdError) {
-                Log.e("Dora", "Yandex OpenApp Show Fail: $adError")
+                DoraLogger.logYandexShowFail(AdType.OpenApp, adError)
                 callback.onShowFail()
 
                 openAd = null
