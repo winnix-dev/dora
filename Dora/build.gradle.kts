@@ -46,7 +46,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "com.github.winnix-dev"
             artifactId = "dora"
-            version = "1.2.4"
+            version = "1.6.0"
 
             afterEvaluate {
                 from(components["release"])
